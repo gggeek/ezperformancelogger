@@ -1,0 +1,6 @@
+<?php /*
+
+[OutputSettings]
+OutputFilterName=ezPerfLogger
+
+*/ ?>
