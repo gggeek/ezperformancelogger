@@ -1,0 +1,36 @@
+Installation instructions
+=========================
+
+1. enable the extension
+
+2. edit ezperformancelogger.ini to decide the data you want to log:
+   parameter [GeneralSettings]/TrackVariables
+   See file README for more details avout available data
+   NB: db_queies logging only works with ez debug on
+
+3. edit ezperformancelogger.ini to decide how to log it:
+
+  a. using Apache
+  to add perf data to the Apache access log, customize your Apache configuration
+  taking as example the sample_httpd.conf file in the doc directory.
+  It is recommended not to enable collection of execution time via
+  TrackVariables when using Apache, but to rely on the more precise native
+  measure obtained with %D
+  
+  b. using piwik or google analytics
+  tha perf data is logged directly to the analytics engine database, via usage
+  of "custom variables" (ie. we add the perf data to the js call done for visit
+  tracking). For both these tools, you will need to insert in your pagelayout
+  template the standard javascript tracking code; the extension will transform
+  it as appropriate to add the extra data.
+  For ga, only the async tag is supported.
+
+4. once logging of data is active, we recommend using a tool like httrack or
+   wget to scan your complete website and get an overview of the performance
+   of your web pages and identify the most resource-hungry ones.
+   
+   A good idea is to run the scan both with eZ Publish caches on and off, to
+   measure the effectiveness of cache configuration.
+
+   NB: the extension does not provide any means to visualize the logged data.
+   You can use any tool from excel to matlab for that.
