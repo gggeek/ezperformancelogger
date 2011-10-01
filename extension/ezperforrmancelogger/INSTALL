@@ -24,6 +24,9 @@ Installation instructions
   template the standard javascript tracking code; the extension will transform
   it as appropriate to add the extra data.
   For ga, only the async tag is supported.
+  NB: data reported via piwik or google analytics will not be accurate if your
+  website is using a caching reverse proxy or cdn. Please use tha apache-log
+  configuration in such case.
 
 4. once logging of data is active, we recommend using a tool like httrack or
    wget to scan your complete website and get an overview of the performance

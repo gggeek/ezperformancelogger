@@ -1,7 +1,14 @@
 An extension dedicated to measuring performances of eZ Publish websites
 =======================================================================
 
+Requirements:
+-------------
+. eZP 4.x
+. apache webserver recommended
+. either a piwik or ga account
+
 How it works:
+-------------
 
 - by logging performance indicators for every page view
   Supported indicators are, so far:
