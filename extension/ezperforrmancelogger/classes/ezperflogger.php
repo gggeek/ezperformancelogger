@@ -4,7 +4,6 @@
 * to different "log" types
 *
 * @todo log total cluster queries (see code in ezdebug extension)
-* @todo add an ini file with the name of file to log to ('apache' for apache notes)
 */
 class ezPerfLogger
 {
@@ -31,7 +30,6 @@ class ezPerfLogger
                     // we cannot use $db->databasename() because we get the same for mysql and mysqli
                     $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
                     $type .= '_query';
-                    //die($type);
                     // read accumulator
                     $debug = eZDebug::instance();
                     if ( isset( $debug->TimeAccumulatorList[$type] ) )
@@ -64,7 +62,6 @@ class ezPerfLogger
                         $text .= "\npiwikTracker.setCustomVariable( $i, \"$var\", \"{$values[$i]}\", \"page\" );";
                     }
                     $text .= "\npiwikTracker.trackPageView();";
-                    //die('hi');
                     $output = preg_replace( '/piwikTracker\.trackPageView\( *\);?/', $text, $output );
                     break;
 

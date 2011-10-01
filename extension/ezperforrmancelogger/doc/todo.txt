@@ -1,7 +1,7 @@
 . create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
 . direct-to-db logging
 . logging to logfile
-. cronjob to parse apache log (or custom perf log) and import data to db
+. cronjob to parse apache log (or custom perf log) and import data to db (aggergated)
 . module/view to display data
 . more pkis: cluster queries, custom ones?...
 . script to wget and measure a whole site
