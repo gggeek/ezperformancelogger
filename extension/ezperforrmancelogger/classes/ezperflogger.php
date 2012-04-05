@@ -7,7 +7,18 @@
 */
 class ezPerfLogger
 {
-    static function filter( $output )
+    static protected $custom_variables = array();
+
+    /**
+     * Record a value associated with a given variable name.
+     * The value will then be logged if in the ezperflogger.ini file that variable is set to logged
+     */
+    static public function recordValue( $varName, $value )
+    {
+        self::$custom_variables[$varName] = $value;
+    }
+
+    static public function filter( $output )
     {
         global $scriptStartTime;
 
@@ -41,6 +52,9 @@ class ezPerfLogger
                         $values[$i] = "0"; // can not tell between 0 reqs per page and no debug...
                     }
                     break;
+
+                default:
+                    $values[$i] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
             }
         }
 
@@ -51,6 +65,7 @@ class ezPerfLogger
                 case 'apache':
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
+                        /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
                         apache_note( $var, $values[$i] );
                     }
                     break;
@@ -75,11 +90,26 @@ class ezPerfLogger
                     $output = preg_replace( "/_gaq.push\( *[ *['\"]_trackPageview['\"] *] *\);?/", $text, $output );
                     break;
 
-                /// @todo
-                /*case 'logfile':
-                    ;
+                case 'logfile':
+                    /// same format as Apache "combined" by default:
+                    /// LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
+                    /// @todo add values for %l (remote logname), %u (remote user)
+                    /// @todo should use either %z or %Z depending on os...
+                    /// @todo it's not always a 200 ok response...
+                    $size = strlen( $output );
+                    if ( $size == 0 )
+                        $size = '-';
+                    $text = $_SERVER["REMOTE_ADDR"] . ' - - [' . strftime( '%d/%b/%Y:%H:%M:%S %Z' ). '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size . ' "' . @$_SERVER["HTTP_REFERER"] . '" "' . @$_SERVER["HTTP_USER_AGENT"] . '" ';
+                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                    {
+                        /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
+                        $text .= $values[$i] ." ";
+                    }
+                    $text .= "\n";
+                    file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
                     break;
-                case 'database':
+
+                /*case 'database':
                     ;
                     break;*/
 
@@ -88,6 +118,137 @@ class ezPerfLogger
 
         return $output;
     }
+
+        static public function parseLog( $logFilePath )
+    {
+
+        $contentArray = array();
+
+        $plIni = eZINI::instance( 'ezperformacelogger.ini' );
+
+        $sys = eZSys::instance();
+        $varDir = $sys->varDirectory();
+        $updateViewLog = "updateperfstats.log";
+
+        $startLine = "";
+        $hasStartLine = false;
+
+        $updateViewLogPath = $varDir . "/" . $logDir . "/" . $updateViewLog;
+        if ( is_file( $updateViewLogPath ) )
+        {
+            $fh = fopen( $updateViewLogPath, "r" );
+            if ( $fh )
+            {
+                while ( !feof ( $fh ) )
+                {
+                    $line = fgets( $fh, 1024 );
+                    if ( preg_match( "/\[/", $line ) )
+                    {
+                        $startLine = $line;
+                        $hasStartLine = true;
+                    }
+                }
+                fclose( $fh );
+            }
+        }
+
+//        $cli->output( "Start line:\n" . $startLine );
+        $lastLine = "";
+
+        if ( is_file( $logFilePath ) )
+        {
+            $handle = fopen( $logFilePath, "r" );
+            if ( $handle )
+            {
+                $noteVars = $plIni->variable( 'GeneralSettings', 'TrackVariables' );
+                $noteVarsCount = count( $noteVars );
+                $startParse = false;
+                $stopParse = false;
+                while ( !feof ($handle) and !$stopParse )
+                {
+                    $line = fgets($handle, 1024);
+                    if ( !empty( $line ) )
+                    {
+                        if ( $line != "" )
+                            $lastLine = $line;
+
+                        if ( $startParse or !$hasStartLine )
+                        {
+                            $logPartArray = preg_split( "/[\"]+/", $line );
+                            $timeIPPart = $logPartArray[0];
+                            list( $ip, $timePart ) = explode( '[', $timeIPPart, 2 );
+                            list( $time, $rest ) = explode( ' ', $timePart, 2 );
+
+                            if ( $time == $startTime )
+                                $stopParse = true;
+                            $requirePart = $logPartArray[1];
+
+                            list( $requireMethod, $url ) = explode( ' ', $requirePart );
+
+                            /// NB: we assume there is no " in the 'perf counters' part
+                            $notePart = $logPartArray[count($logPartArray)-1];
+                            $notes = explode( ' ', $notePart );
+                            if ( count( $notes ) < $noteVarsCount )
+                            {
+//                                $cli->output( "Warning: log file line does not match configuration: not enough perf counters found." );
+                            }
+                            else
+                            {
+                                $contentArray[] = array(
+                                    'url' => $url,
+                                    'time' => $time,
+                                    'ip' => trim( $ip ),
+                                    'counters' => array_combine( $noteVars, $notes ) );
+                            }
+
+                        }
+                        if ( $line == $startLine )
+                        {
+                            $startParse = true;
+                        }
+                    }
+                }
+                fclose( $handle );
+            }
+            else
+            {
+                eZDebug::writeWarning( "Cannot open log-file '$logFilePath' for reading, please check permissions and try again.", __METHOD__ );
+                return false;
+            }
+        }
+        else
+        {
+            eZDebug::writeWarning( "Log-file '$logFilePath' doesn't exist, please check your ini-settings and try again.", __METHOD__ );
+            return false;
+        }
+
+        if ( count( $contentArray ) )
+        {
+            $db = eZDB::instance();
+
+            foreach( $contentArray as $data )
+            {
+                $db->query( "INSERT INTO VALUES ()" );
+            }
+        }
+
+        $dt = new eZDateTime();
+        $fh = fopen( $updateViewLogPath, "w" );
+        if ( $fh )
+        {
+            fwrite( $fh, "# Finished at " . $dt->toString() . "\n" );
+            fwrite( $fh, "# Last updated entry:" . "\n" );
+            fwrite( $fh, $lastLine . "\n" );
+            fclose( $fh );
+        }
+        else
+        {
+            eZDebug::writeError( "Could not store last date up perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
+        }
+
+        return count( $contentArray );
+    }
+
 }
 
 ?>
