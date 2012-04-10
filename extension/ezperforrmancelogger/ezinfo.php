@@ -1,5 +1,5 @@
 <?php
-class ezapacheperflogInfo
+class eZperformanceloggerInfo
 {
     static function info()
     {

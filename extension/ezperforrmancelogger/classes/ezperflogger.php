@@ -5,7 +5,7 @@
 *
 * @todo log total cluster queries (see code in ezdebug extension)
 */
-class ezPerfLogger
+class eZPerfLogger
 {
     static protected $custom_variables = array();
 
@@ -92,7 +92,6 @@ class ezPerfLogger
 
                 case 'logfile':
                     /// same format as Apache "combined" by default:
-                    /// LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
                     /// @todo add values for %l (remote logname), %u (remote user)
                     /// @todo should use either %z or %Z depending on os...
                     /// @todo it's not always a 200 ok response...

@@ -1,6 +1,6 @@
 <?php /*
 
 [OutputSettings]
-OutputFilterName=ezPerfLogger
+OutputFilterName=eZPerfLogger
 
 */ ?>
