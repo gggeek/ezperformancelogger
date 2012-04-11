@@ -1,0 +1,36 @@
+An extension dedicated to measuring performances of eZ Publish websites
+=======================================================================
+
+Requirements:
+-------------
+. eZP 4.x
+. apache webserver recommended
+. optionally: either a piwik or ga account
+
+How it works:
+-------------
+
+- by logging performance indicators for every page view
+  Supported indicators are, so far:
+  . total execution time
+  . total memory usage
+  . number of db queries
+  . custom indicators set by the developer using php code
+
+- the logging of the data can be directed to different media:
+  . the Apache access log
+  . the piwik web analytics engine
+  . the google analytics engine
+  . a separate log file
+  and in the future even more
+
+The extension does not yet provide a way to visualize the logged
+data, you will need an external tool for that:
+. for data streamed to the Apache log, a parser such as awstats, duly customized
+. for data streamed to piwik or ga, use the analytics tool web interface
+
+Notes about collected data:
+- measured script runtime is a bit shorter than reality, as we can not hook at the very end of eZP page generation process
+- measured time is rounded to milliseconds
+- measured ram usage is rounded to 1000 bytes
+- db queries executed can only (most likely?) be measured when debug ouput is turned on

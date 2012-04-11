@@ -1,6 +1,0 @@
-<?php /*
-
-[OutputSettings]
-OutputFilterName=eZPerfLogger
-
-*/ ?>
