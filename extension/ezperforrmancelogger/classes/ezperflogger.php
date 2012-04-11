@@ -1,17 +1,21 @@
 <?php
 /**
-* An 'output filter' class that does not filter anything, but logs some perf values
-* to different "log" types
-*
-* @todo log total cluster queries (see code in ezdebug extension)
-*/
+ * An 'output filter' class that does not filter anything, but logs some perf values
+ * to different "log" types.
+ *
+ * @todo log total cluster queries (see code in ezdebug extension)
+ *
+ * @author G. Giunta
+ * @copyright (C) G. Giunta 2008-2012
+ * @license Licensed under GNU General Public License v2.0. See file license.txt
+ */
 class eZPerfLogger
 {
     static protected $custom_variables = array();
 
     /**
      * Record a value associated with a given variable name.
-     * The value will then be logged if in the ezperflogger.ini file that variable is set to logged
+     * The value will then be logged if in the ezperflogger.ini file that variable is set to be logged
      */
     static public function recordValue( $varName, $value )
     {
@@ -92,6 +96,7 @@ class eZPerfLogger
 
                 case 'logfile':
                     /// same format as Apache "combined" by default:
+                    /// LogFormat "%h %l %u %t \"%r\" % >s %b \"%{Referer}i\" \"%{User-Agent}i\"
                     /// @todo add values for %l (remote logname), %u (remote user)
                     /// @todo should use either %z or %Z depending on os...
                     /// @todo it's not always a 200 ok response...
@@ -108,9 +113,19 @@ class eZPerfLogger
                     file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
                     break;
 
-                /*case 'database':
-                    ;
-                    break;*/
+                case 'database':
+                    $counters = array();
+                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                    {
+                        $counters[$var] = $values[$i];
+                    }
+                    eZPerfLoggerStorage::updateStats( array( array(
+                        'url' => $_SERVER["REQUEST_URI"],
+                        'ip' => $_SERVER["REMOTE_ADDR"],
+                        'time' => time(),
+                        'counters' => $counters
+                    ) ) );
+                    break;
 
             }
         }
@@ -118,7 +133,7 @@ class eZPerfLogger
         return $output;
     }
 
-        static public function parseLog( $logFilePath )
+    static public function parseLog( $logFilePath )
     {
 
         $contentArray = array();
@@ -165,7 +180,7 @@ class eZPerfLogger
                 $stopParse = false;
                 while ( !feof ($handle) and !$stopParse )
                 {
-                    $line = fgets($handle, 1024);
+                    $line = fgets( $handle, 1024 );
                     if ( !empty( $line ) )
                     {
                         if ( $line != "" )
@@ -198,6 +213,9 @@ class eZPerfLogger
                                     'time' => $time,
                                     'ip' => trim( $ip ),
                                     'counters' => array_combine( $noteVars, $notes ) );
+
+                                /// @todo if $contentArray grows too big, we're gonna go OOM
+                                ///       so we should update db incrementally
                             }
 
                         }
@@ -223,12 +241,7 @@ class eZPerfLogger
 
         if ( count( $contentArray ) )
         {
-            $db = eZDB::instance();
-
-            foreach( $contentArray as $data )
-            {
-                $db->query( "INSERT INTO VALUES ()" );
-            }
+            eZPerfLoggerStorage::updateStats( $contentArray );
         }
 
         $dt = new eZDateTime();
@@ -247,7 +260,6 @@ class eZPerfLogger
 
         return count( $contentArray );
     }
-
 }
 
 ?>
