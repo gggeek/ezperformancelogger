@@ -103,7 +103,7 @@ class eZPerfLogger
                     $size = strlen( $output );
                     if ( $size == 0 )
                         $size = '-';
-                    $text = $_SERVER["REMOTE_ADDR"] . ' - - [' . strftime( '%d/%b/%Y:%H:%M:%S %Z' ). '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size . ' "' . @$_SERVER["HTTP_REFERER"] . '" "' . @$_SERVER["HTTP_USER_AGENT"] . '" ';
+                    $text = $_SERVER["REMOTE_ADDR"] . ' - - [' . date( 'd/M/Y:H:i:s O' ) . '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size . ' "' . @$_SERVER["HTTP_REFERER"] . '" "' . @$_SERVER["HTTP_USER_AGENT"] . '" ';
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
                         /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
@@ -119,7 +119,10 @@ class eZPerfLogger
                     {
                         $counters[$var] = $values[$i];
                     }
-                    eZPerfLoggerStorage::updateStats( array( array(
+                    $storageClass = $ini->variable( 'GeneralSettings', 'StorageClass' );
+                    /// @todo log error id storage class does not implement correct interface
+                    // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
+                    call_user_func( array( $storageClass, 'insertStats' ), array( array(
                         'url' => $_SERVER["REQUEST_URI"],
                         'ip' => $_SERVER["REMOTE_ADDR"],
                         'time' => time(),
@@ -138,7 +141,7 @@ class eZPerfLogger
 
         $contentArray = array();
 
-        $plIni = eZINI::instance( 'ezperformacelogger.ini' );
+        $plIni = eZINI::instance( 'ezperformancelogger.ini' );
 
         $sys = eZSys::instance();
         $varDir = $sys->varDirectory();
@@ -166,8 +169,10 @@ class eZPerfLogger
             }
         }
 
-//        $cli->output( "Start line:\n" . $startLine );
         $lastLine = "";
+        $startTime = time();
+        $count = 0;
+        $storageClass = $plIni->variable( 'GeneralSettings', 'StorageClass' );
 
         if ( is_file( $logFilePath ) )
         {
@@ -176,52 +181,69 @@ class eZPerfLogger
             {
                 $noteVars = $plIni->variable( 'GeneralSettings', 'TrackVariables' );
                 $noteVarsCount = count( $noteVars );
-                $startParse = false;
+                $startParse = !$hasStartLine;
                 $stopParse = false;
-                while ( !feof ($handle) and !$stopParse )
+                while ( !feof( $handle ) and !$stopParse )
                 {
                     $line = fgets( $handle, 1024 );
                     if ( !empty( $line ) )
                     {
-                        if ( $line != "" )
-                            $lastLine = $line;
+                        $lastLine = $line;
 
-                        if ( $startParse or !$hasStartLine )
+                        if ( $startParse )
                         {
-                            $logPartArray = preg_split( "/[\"]+/", $line );
-                            $timeIPPart = $logPartArray[0];
-                            list( $ip, $timePart ) = explode( '[', $timeIPPart, 2 );
-                            list( $time, $rest ) = explode( ' ', $timePart, 2 );
+                            if ( !preg_match( '/([0-9.]+) +([^ ]+) +([^ ]+) +\[([^]]+)\] +(.+)/', $line, $matches ) )
+                            {
+                                /// @todo log warning
+                                continue;
+                            }
+                            $datetime = DateTime::createFromFormat( 'd/M/Y:H:i:s O', $matches[4] );
+                            if ( !$datetime )
+                            {
+                                /// @todo log warning
+                                continue;
+                            }
+                            $time = $datetime->format( 'U' );
+                            $ip = $matches[1];
 
                             if ( $time == $startTime )
                                 $stopParse = true;
-                            $requirePart = $logPartArray[1];
 
-                            list( $requireMethod, $url ) = explode( ' ', $requirePart );
+                            $logPartArray = explode( '"', $matches[5] ); //preg_split( "/[\"]+/", $line );
+                            list( $requireMethod, $url, $protocol ) = explode( ' ', $logPartArray[1] );
 
                             /// NB: we assume there is no " in the 'perf counters' part
-                            $notePart = $logPartArray[count($logPartArray)-1];
+                            $notePart = ltrim( rtrim( $logPartArray[count( $logPartArray )-1], " \n\r" ), ' ' );
                             $notes = explode( ' ', $notePart );
                             if ( count( $notes ) < $noteVarsCount )
                             {
-//                                $cli->output( "Warning: log file line does not match configuration: not enough perf counters found." );
+                                /// @todo log warning
+                                continue;
                             }
-                            else
+
+                            $contentArray[] = array(
+                                'url' => $url,
+                                'time' => $time,
+                                'ip' => $ip,
+                                /// @todo if the number of elements found is bigger than the number expected, we will not add anything. Use array_slice
+                                'counters' => array_combine( $noteVars, $notes ) );
+
+                            // if $contentArray grows too big, we're gonna go OOM, so we update db incrementally
+                            $count++;
+                            if ( ( $count % 1000 ) == 1 )
                             {
-                                $contentArray[] = array(
-                                    'url' => $url,
-                                    'time' => $time,
-                                    'ip' => trim( $ip ),
-                                    'counters' => array_combine( $noteVars, $notes ) );
-
-                                /// @todo if $contentArray grows too big, we're gonna go OOM
-                                ///       so we should update db incrementally
+                                /// @todo log error if storage class does not implement correct interface
+                                // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
+                                call_user_func( array( $storageClass, 'insertStats' ), $contentArray );
+                                $contentArray = array();
                             }
-
                         }
-                        if ( $line == $startLine )
+                        else
                         {
-                            $startParse = true;
+                            if ( $line == $startLine )
+                            {
+                                $startParse = true;
+                            }
                         }
                     }
                 }
@@ -241,7 +263,9 @@ class eZPerfLogger
 
         if ( count( $contentArray ) )
         {
-            eZPerfLoggerStorage::updateStats( $contentArray );
+            /// @todo log error if storage class does not implement correct interface
+            // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
+            call_user_func( array( $storageClass, 'insertStats' ), $contentArray );
         }
 
         $dt = new eZDateTime();
@@ -258,7 +282,7 @@ class eZPerfLogger
             eZDebug::writeError( "Could not store last date up perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
         }
 
-        return count( $contentArray );
+        return $count;
     }
 }
 
