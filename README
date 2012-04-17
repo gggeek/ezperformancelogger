@@ -1,6 +1,12 @@
 An extension dedicated to measuring performances of eZ Publish websites
 =======================================================================
 
+This tool is meant to measure performances of eZ Publish sites in production.
+It will work with ezdebug turned off, and tries to be lightweight not to slow
+down your server too much because of the measurements. For the same reason by
+default it does not store performance data into the database, but as part of
+the existing Apache log.
+
 Requirements:
 -------------
 . eZP 4.x
@@ -22,15 +28,29 @@ How it works:
   . the piwik web analytics engine
   . the google analytics engine
   . a separate log file
-  and in the future even more
+  and in the future even more.
 
-The extension does not yet provide a way to visualize the logged
+  Logging to the Apache acces log is recommended for a number of reasons: by default
+  apache logs are rotated, so you do not risk filling your disks with data, and
+  there is less of an IO performance hit in logging there, as the log files are
+  written anyway.
+
+- to ease statistical usage of the perf data saved in the Apache log, a courtesy cronjob/
+  command line script is provided: updateperfstats.
+  It can be used in a 2-phase performance analysis scenario:
+  Phase 1: enable and configure ezperformanceogger to log to Apache log or to a
+           custom lo file; execute load tests
+  Phase 2: run php extension/ezperformancelogger/bin/php/updateperfstats.php to
+           parse the Apache access log and produce a csv file; import that csv
+           file in your preferred spreadsheet tool or database
+
+NB: the extension does not yet provide a way to visualize the logged
 data, you will need an external tool for that:
-. for data streamed to the Apache log, a parser such as awstats, duly customized
+. for data streamed to the Apache log or a separate log file, a spreadsheet program which can import csv files
 . for data streamed to piwik or ga, use the analytics tool web interface
 
 Notes about collected data:
-- measured script runtime is a bit shorter than reality, as we can not hook at the very end of eZP page generation process
+- measured script runtime is a bit shorter than reality, as we can not hook at the very beginning and end of php process execution
 - measured time is rounded to milliseconds
 - measured ram usage is rounded to 1000 bytes
 - db queries executed can only (most likely?) be measured when debug ouput is turned on

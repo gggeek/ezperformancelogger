@@ -146,18 +146,34 @@ class eZPerfLogger
                     break;
 
                 case 'database':
+                case 'csv':
+                case 'storage':
+                    if ( $method == 'csv' )
+                    {
+                        $storageClass = 'eZPerfLoggerCSVStorage';
+                    }
+                    else if ( $method == 'database' )
+                    {
+                        $storageClass = 'eZPerfLoggerDBStorage';
+                    }
+                    else
+                    {
+                        $storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
+                    }
                     $counters = array();
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
                         $counters[$var] = $values[$i];
                     }
-                    $storageClass = $ini->variable( 'GeneralSettings', 'StorageClass' );
                     /// @todo log error if storage class does not implement correct interface
                     // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
                     call_user_func( array( $storageClass, 'insertStats' ), array( array(
                         'url' => $_SERVER["REQUEST_URI"],
                         'ip' => $_SERVER["REMOTE_ADDR"],
                         'time' => time(),
+                        /// @todo
+                        'response_status' => "200",
+                        'response_size' => strlen( $output ),
                         'counters' => $counters
                     ) ) );
                     break;

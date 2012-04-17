@@ -30,6 +30,8 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
             $data = $line['counters'];
             $data[] = date( 'd/M/Y:H:i:s O', $line['time'] );
             $data[] = $line['ip'];
+            $data[] = $line['response_status'];
+            $data[] = $line['response_size'];
             $data[] = $quotes . str_replace( $quotes, $quotes . $quotes, $line['url'] ). $quotes;
             fwrite( $fp, implode( $separator, $data ) . "\n" );
         }
