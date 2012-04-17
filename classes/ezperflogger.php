@@ -14,6 +14,47 @@ class eZPerfLogger
     static protected $custom_variables = array();
 
     /**
+     * This method is called to allow this class to provide values for the measurements
+     * variables it caters to.
+     * It does so by calling eZPerfLogger::recordValue
+     */
+    static public function measure()
+    {
+        global $scriptStartTime;
+
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+        if ( in_array( 'execution_time', $vars ) )
+        {
+            self::recordValue( 'execution_time', round( microtime( true ) - $scriptStartTime, 3 ) );
+        }
+        if ( in_array( 'mem_usage', $vars ) )
+        {
+            self::recordValue( 'mem_usage', round( memory_get_peak_usage( true ), -3 ) );
+        }
+        if ( in_array( 'db_queries', $vars ) )
+        {
+            // (nb: only works when debug is enabled?)
+            $dbini = eZINI::instance();
+            // we cannot use $db->databasename() because we get the same for mysql and mysqli
+            $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
+            $type .= '_query';
+            // read accumulator
+            $debug = eZDebug::instance();
+            if ( isset( $debug->TimeAccumulatorList[$type] ) )
+            {
+                $queries= $debug->TimeAccumulatorList[$type]['count'];
+            }
+            else
+            {
+                $queries = "0"; // can not tell between 0 reqs per page and no debug...
+            }
+            self::recordValue( 'db_queries', $queries );
+        }
+
+    }
+
+    /**
      * Record a value associated with a given variable name.
      * The value will then be logged if in the ezperflogger.ini file that variable is set to be logged
      */
@@ -22,46 +63,30 @@ class eZPerfLogger
         self::$custom_variables[$varName] = $value;
     }
 
+    /**
+     * This method is registered to be executed at end of page execution. It does
+     * the actual logging of the performance variables values according to the
+     * configuration in ezperformancelogger.ini
+     */
     static public function filter( $output )
     {
-        global $scriptStartTime;
 
+        // look up any perf data provider, and ask each one to record its values
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $class )
+        {
+            call_user_func( array( $class, 'measure' ) );
+        }
 
+        // build the array with the values we want to record in the logs -
+        // only the ones corresponding to variables defined in the ini file
         $values = array();
         foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
         {
-            switch( $var )
-            {
-                case 'mem_usage':
-                    $values[$i] = round( memory_get_peak_usage( true ), -3 );
-                    break;
-                case 'execution_time':
-                    $values[$i] = round( microtime( true ) - $scriptStartTime, 3 ); /// @todo test if $scriptStartTime is set
-                    break;
-                case 'db_queries':
-                    // (nb: only works when debug is enabled?)
-                    $dbini = eZINI::instance();
-                    // we cannot use $db->databasename() because we get the same for mysql and mysqli
-                    $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
-                    $type .= '_query';
-                    // read accumulator
-                    $debug = eZDebug::instance();
-                    if ( isset( $debug->TimeAccumulatorList[$type] ) )
-                    {
-                        $values[$i] = $debug->TimeAccumulatorList[$type]['count'];
-                    }
-                    else
-                    {
-                        $values[$i] = "0"; // can not tell between 0 reqs per page and no debug...
-                    }
-                    break;
-
-                default:
-                    $values[$i] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
-            }
+            $values[$i] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
         }
 
+        // for each logging type configured, log values to it
         foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $method )
         {
             switch( $method )
@@ -120,7 +145,7 @@ class eZPerfLogger
                         $counters[$var] = $values[$i];
                     }
                     $storageClass = $ini->variable( 'GeneralSettings', 'StorageClass' );
-                    /// @todo log error id storage class does not implement correct interface
+                    /// @todo log error if storage class does not implement correct interface
                     // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
                     call_user_func( array( $storageClass, 'insertStats' ), array( array(
                         'url' => $_SERVER["REQUEST_URI"],
@@ -136,6 +161,10 @@ class eZPerfLogger
         return $output;
     }
 
+    /**
+     * Parse a log file (apache "extended" format expected, with perf. values at the end),
+     * retrieve performance values from it and store them in a storage provider
+     */
     static public function parseLog( $logFilePath )
     {
 

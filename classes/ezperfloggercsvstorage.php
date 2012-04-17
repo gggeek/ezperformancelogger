@@ -28,7 +28,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
         foreach( $data as $line )
         {
             $data = $line['counters'];
-                $data[] = date( 'd/M/Y:H:i:s O', $line['time'] );
+            $data[] = date( 'd/M/Y:H:i:s O', $line['time'] );
             $data[] = $line['ip'];
             $data[] = $quotes . str_replace( $quotes, $quotes . $quotes, $line['url'] ). $quotes;
             fwrite( $fp, implode( $separator, $data ) . "\n" );
