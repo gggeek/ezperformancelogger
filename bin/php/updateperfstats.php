@@ -57,6 +57,8 @@ else
 
 if ( $logFilePath != '' )
 {
+    $cli->output( "Parsing file " . $logFilePath  );
+
     $ok = eZPerfLogger::parseLog( $logFilePath );
     if ( $ok === false )
     {
@@ -64,7 +66,7 @@ if ( $logFilePath != '' )
     }
     else
     {
-        $cli->output( "$ok lines parsed in file $logFilePath" );
+        $cli->output( "$ok lines containing data found" );
     }
 }
 

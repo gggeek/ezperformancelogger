@@ -95,6 +95,7 @@ class eZPerfLogger
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
                         /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
+                        /// @todo for later log parsing, it is better to replace "null" vith "-"...
                         apache_note( $var, $values[$i] );
                     }
                     break;
@@ -171,6 +172,8 @@ class eZPerfLogger
         $contentArray = array();
 
         $plIni = eZINI::instance( 'ezperformancelogger.ini' );
+        $ini = eZINI::instance();
+        $logDir = $ini->variable( 'FileSettings', 'LogDir' );
 
         $sys = eZSys::instance();
         $varDir = $sys->varDirectory();
@@ -179,6 +182,8 @@ class eZPerfLogger
         $startLine = "";
         $hasStartLine = false;
 
+        /// @todo we should store name of apache log file in our token, so that if
+        // it changes in ini file, we do not try to skip anything
         $updateViewLogPath = $varDir . "/" . $logDir . "/" . $updateViewLog;
         if ( is_file( $updateViewLogPath ) )
         {
@@ -187,7 +192,7 @@ class eZPerfLogger
             {
                 while ( !feof ( $fh ) )
                 {
-                    $line = fgets( $fh, 1024 );
+                    $line = fgets( $fh );
                     if ( preg_match( "/\[/", $line ) )
                     {
                         $startLine = $line;
@@ -197,11 +202,24 @@ class eZPerfLogger
                 fclose( $fh );
             }
         }
+        if ( $hasStartLine )
+        {
+            eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines" );
+        }
+        else
+        {
+            eZDebug::writeDebug( "State of previous run not found. Parsing thw ehole log file" );
+        }
 
         $lastLine = "";
         $startTime = time();
         $count = 0;
-        $storageClass = $plIni->variable( 'GeneralSettings', 'StorageClass' );
+        $storageClass = $plIni->variable( 'ParsingSettings', 'StorageClass' );
+        $excludeRegexps= $plIni->variable( 'ParsingSettings', 'ExcludeUrls' );
+        $skipped = 0;
+        $total = 0;
+        $parsed = 0;
+        $empty = 0;
 
         if ( is_file( $logFilePath ) )
         {
@@ -215,12 +233,15 @@ class eZPerfLogger
                 while ( !feof( $handle ) and !$stopParse )
                 {
                     $line = fgets( $handle, 1024 );
+                    $total++;
                     if ( !empty( $line ) )
                     {
                         $lastLine = $line;
 
                         if ( $startParse )
                         {
+                            $parsed++;
+
                             if ( !preg_match( '/([0-9.]+) +([^ ]+) +([^ ]+) +\[([^]]+)\] +(.+)/', $line, $matches ) )
                             {
                                 /// @todo log warning
@@ -239,21 +260,50 @@ class eZPerfLogger
                                 $stopParse = true;
 
                             $logPartArray = explode( '"', $matches[5] ); //preg_split( "/[\"]+/", $line );
+
+                            // there is no point in parsing this line further: we miss the perf-data part
+                            if ( count( $logPartArray ) < 4 )
+                            {
+                                continue;
+                            }
+
+                            // nb: generates a php warning when the url recorded by apache is too long.
+                            // In that case apache records a substring of the url in the access log, and here
+                            // we will find no protocol part
                             list( $requireMethod, $url, $protocol ) = explode( ' ', $logPartArray[1] );
+
+                            foreach( $excludeRegexps as $regexp )
+                            {
+                                if ( preg_match( $regexp, $url ) )
+                                {
+                                    continue 2;
+                                }
+                            }
+
+                            list( $respstatus, $respsize ) = explode( ' ', trim( $logPartArray[2], ' ' ) );
 
                             /// NB: we assume there is no " in the 'perf counters' part
                             $notePart = ltrim( rtrim( $logPartArray[count( $logPartArray )-1], " \n\r" ), ' ' );
                             $notes = explode( ' ', $notePart );
                             if ( count( $notes ) < $noteVarsCount )
                             {
-                                /// @todo log warning
+                                // could be any static resource
                                 continue;
+                            }
+                            else if ( count( $notes ) > $noteVarsCount )
+                            {
+                                // The apache log might be set up to add extra stuff here, between the user agent's string and the perf logging data
+                                // so we just ignore it.
+                                // Note that this might also be a sign of a config error...
+                                $notes = array_slice( $notes, -1 * $noteVarsCount );
                             }
 
                             $contentArray[] = array(
                                 'url' => $url,
                                 'time' => $time,
                                 'ip' => $ip,
+                                'response_status' => $respstatus,
+                                'response_size' => $respsize,
                                 /// @todo if the number of elements found is bigger than the number expected, we will not add anything. Use array_slice
                                 'counters' => array_combine( $noteVars, $notes ) );
 
@@ -269,11 +319,16 @@ class eZPerfLogger
                         }
                         else
                         {
+                            $skipped++;
                             if ( $line == $startLine )
                             {
                                 $startParse = true;
                             }
                         }
+                    }
+                    else
+                    {
+                        $empty++;
                     }
                 }
                 fclose( $handle );
@@ -310,6 +365,11 @@ class eZPerfLogger
         {
             eZDebug::writeError( "Could not store last date up perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
         }
+
+        eZDebug::writeDebug( 'Empty lines: ' . $empty );
+        eZDebug::writeDebug( 'Skipped lines: ' . $skipped );
+        eZDebug::writeDebug( 'Parsed lines: ' . $parsed );
+        eZDebug::writeDebug( 'Total lines: ' . $total );
 
         return $count;
     }
