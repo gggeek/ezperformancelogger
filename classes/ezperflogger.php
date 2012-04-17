@@ -95,7 +95,6 @@ class eZPerfLogger
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
                         /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                        /// @todo for later log parsing, it is better to replace "null" vith "-"...
                         apache_note( $var, $values[$i] );
                     }
                     break;
@@ -124,7 +123,6 @@ class eZPerfLogger
                     /// same format as Apache "combined" by default:
                     /// LogFormat "%h %l %u %t \"%r\" % >s %b \"%{Referer}i\" \"%{User-Agent}i\"
                     /// @todo add values for %l (remote logname), %u (remote user)
-                    /// @todo should use either %z or %Z depending on os...
                     /// @todo it's not always a 200 ok response...
                     $size = strlen( $output );
                     if ( $size == 0 )
@@ -132,8 +130,16 @@ class eZPerfLogger
                     $text = $_SERVER["REMOTE_ADDR"] . ' - - [' . date( 'd/M/Y:H:i:s O' ) . '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size . ' "' . @$_SERVER["HTTP_REFERER"] . '" "' . @$_SERVER["HTTP_USER_AGENT"] . '" ';
                     foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                     {
-                        /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                        $text .= $values[$i] ." ";
+                        // do same as apache does: replace nulls with "-"
+                        if ( ((string)$values[$i] ) === '' )
+                        {
+                            $text .= "- ";
+                        }
+                        else
+                        {
+                            /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
+                            $text .= $values[$i] ." ";
+                        }
                     }
                     $text .= "\n";
                     file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
