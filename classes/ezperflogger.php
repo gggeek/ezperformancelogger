@@ -269,13 +269,14 @@ class eZPerfLogger
                                 /// @todo log warning
                                 continue;
                             }
-                            $datetime = DateTime::createFromFormat( 'd/M/Y:H:i:s O', $matches[4] );
-                            if ( !$datetime )
+
+                            $time = strtotime( implode( ' ', explode( ':', str_replace( '/', '.', $str ), 2 ) ) );
+                            if ( !$time )
                             {
                                 /// @todo log warning
                                 continue;
                             }
-                            $time = $datetime->format( 'U' );
+
                             $ip = $matches[1];
 
                             if ( $time == $startTime )
