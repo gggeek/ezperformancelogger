@@ -270,7 +270,7 @@ class eZPerfLogger
                                 continue;
                             }
 
-                            $time = strtotime( implode( ' ', explode( ':', str_replace( '/', '.', $str ), 2 ) ) );
+                            $time = strtotime( implode( ' ', explode( ':', str_replace( '/', '.', $matches[4] ), 2 ) ) );
                             if ( !$time )
                             {
                                 /// @todo log warning
