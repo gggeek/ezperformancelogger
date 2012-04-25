@@ -12,7 +12,8 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
 {
 
     /**
-     *
+     * @see eZPerfLoggerStorage::insertStats
+     * @param array $data
      */
     public static function insertStats( $data )
     {
@@ -20,10 +21,20 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
         $csvfile = $ini->variable( 'csvSettings', 'FileName' );
         $separator = $ini->variable( 'csvSettings', 'Separator' );
         $quotes = $ini->variable( 'csvSettings', 'Quotes' );
+        $addheader = false;
+        if ( !file_exists( $csvfile ) )
+        {
+            $addheader = true;
+        }
         $fp = fopen( $csvfile, 'a' );
         if ( !$fp )
         {
             return false;
+        }
+        if ( $addheader )
+        {
+            fwrite( $fp, implode( $separator, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) );
+            fwrite( $fp, "{$separator}Date{$separator}IP Address{$separator}Response Status{$separator}Response size{$separator}URL\n" );
         }
         foreach( $data as $line )
         {

@@ -230,7 +230,7 @@ class eZPerfLogger
         }
         else
         {
-            eZDebug::writeDebug( "State of previous run not found. Parsing thw ehole log file" );
+            eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file" );
         }
 
         $lastLine = "";

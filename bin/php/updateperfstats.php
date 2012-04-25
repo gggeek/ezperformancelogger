@@ -1,6 +1,10 @@
 <?php
 /**
  * Same as cronjob, for one-shot runs
+ *
+ * @author G. Giunta
+ * @copyright (C) G. Giunta 2012
+ * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
 require 'autoload.php';
@@ -62,7 +66,7 @@ if ( $logFilePath != '' )
     $ok = eZPerfLogger::parseLog( $logFilePath );
     if ( $ok === false )
     {
-        $cli->output( "Error parsing file $logFilePath. Please run cronjob in debug mode for more info" );
+        $cli->output( "Error parsing file $logFilePath. Please run script in debug mode for more info" );
     }
     else
     {
