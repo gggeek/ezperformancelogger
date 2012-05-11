@@ -1,8 +1,11 @@
 Installation instructions
 =========================
 
-1. enable the extension
+1. enable the extension; clear all caches (at least the ini and template caches)
 
+
+For performance logging
+-----------------------
 
 2. edit ezperformancelogger.ini to decide the data you want to log:
    parameter [GeneralSettings]/TrackVariables
@@ -48,3 +51,32 @@ Installation instructions
 
    NB: the extension does not provide any means to visualize the logged data.
    You can use any tool from excel to matlab for that.
+
+
+For profiling
+-------------
+
+1. make sure the XHProf PECL extension is installed and active
+
+2. give to the user account that will be used for viewing profiling data permissions
+   to execute hxprof/view
+
+3. edit your config.php file and add the following lines at the top:
+   (if you miss the config.php file, copy config.php-RECOMMENDED into config.php)
+
+   include( 'extension/ezperformancelogger/classes/ezxhproflogger.php' );
+   eZXHProfLogger::start();
+
+   in alternative, you can start profiling from anywhere in your php code
+
+4. edit design.ini in extension/ezperformacelogger/settings, and uncomment the
+   lines corresponding to your eZ version
+
+5. view any website page: a link to its profiling info is at the bottom of the debug output
+
+6. in the Admin Interface, in teh Setup tab, you will find a link to a page listing
+   all available profiling data for later viewing.
+
+NB: all profiling data is stored and (currently) never deleted. To avoid filling
+the hard-disk, please disable profiling at some point, and clean up the
+var/log/xhprof directory
