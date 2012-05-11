@@ -52,7 +52,7 @@
                 }
 
                 tokens = tokens.join().replace( '<!-- XHProf runs: ', '' ).replace( ' -->', '' );
-                $('#debug').append( '<h3>XHProf Profiling Run for this page</h3><table class="debug_resource_usage"><tr><td> <a href="' + prefix + '/xhprof/view?run=' + tokens + '">' + tokens + '</a> </td></tr></table>' );
+                $('#debug').append( '<h3>XHProf Profiling Run for this page:</h3><table class="debug_resource_usage"><tr><td> <a href="' + prefix + '/xhprof/view?run=' + tokens + '">' + tokens + '</a> </td></tr></table>' );
             }
         }
     );
