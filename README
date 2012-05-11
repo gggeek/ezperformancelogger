@@ -1,16 +1,21 @@
 An extension dedicated to measuring performances of eZ Publish websites
 =======================================================================
 
-This tool is meant to measure performances of eZ Publish sites in production.
+This tool is meant to measure performances of eZ Publish sites.
+
+Performance measurement is designed to be used in production.
 It will work with ezdebug turned off, and tries to be lightweight not to slow
 down your server too much because of the measurements. For the same reason by
 default it does not store performance data into the database, but as part of
 the existing Apache log.
 
-It doubles as profiling tool as well, since version 0.4
-Note for the causal reader: profiling means measuring php function call executed by
-the web page, and is extremely slow. It can only be used in development, not in
-production environments.
+It doubles as profiling tool as well, since version 0.4.
+This means having at your fingertips more detailed information that the standard
+debug oputput, complete with drill-down capaibilities and call graphs.
+
+Note for the causal reader: profiling means measuring all php function calls
+executed by the web page, and is extremely heavy. It should only be used in development,
+not in production environments.
 
 
 Requirements:
@@ -77,5 +82,10 @@ How it works: profiling
 - a link to see detailed profiling information is added to the debug output at
   the bottom of the page (via javascript)
 
+- all profiling data is stored, and can be viewed later. It is accessible from
+  the Setup tab in the Admin Interface
+
 - profiling can be enabled/disabled independently of performance logging, but when
   it is enabled any memory or execution time numbers logged will be useless
+
+- for more info on XHProf, Google is your friend
