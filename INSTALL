@@ -74,9 +74,8 @@ For profiling
 
 5. view any website page: a link to its profiling info is at the bottom of the debug output
 
-6. in the Admin Interface, in teh Setup tab, you will find a link to a page listing
-   all available profiling data for later viewing.
+6. in the Admin Interface, in the Setup tab, you will find a link to a page listing
+   all available profiling data for viewing.
 
-NB: all profiling data is stored and (currently) never deleted. To avoid filling
-the hard-disk, please disable profiling at some point, and clean up the
-var/log/xhprof directory
+7. all profiling data is stored permanently on disk, in var/log/xhprof. To avoid
+   filling the hard-disk, please schedule execution of the removexhprofdata cronjob

@@ -1,23 +1,20 @@
 perf logging:
 . direct-to-db logging
 . import parsed data to db (aggregated)
-. fix cronjob not running
 . module/views to display data from db
 . more pkis in std logger: cluster queries, custom ones?...
-. tpl operator to allow users to record custom vars
 . fetch functions to retrieve data when it's in the db
 . allow csv output tu use comma instead of dot for float numbers
 . script to wget and measure a whole site
 . create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
   (see http://openelibrary.org/development/piwik-custom-data-tracking/)
 . add to app some sample spreadsheets where to copy data into that come with pre-made formulas to show eg. view-cache relevancy
+. allow using a Pinba server as target for measurements
 
 xhprof:
-. add tpl operators
-. fix: "invalid sort key" error in view view
+. fix: "invalid sort key" error in "view" view
 . push down Url, Date in "view" view
 . test/fix typeahead find in "view" view
-. add php script to clean up all xhprof runs data (also via gui from 'list' view)
 . allow sorting by date or url of view listing all xhprof runs
 . cache parsed xhprof data when viewing same trace again
 . avoid generating hkprof trace when viewing another trace
