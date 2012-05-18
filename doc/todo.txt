@@ -12,9 +12,8 @@ perf logging:
 . allow using a Pinba server as target for measurements
 
 xhprof:
+. fix typeahead find in "view" view
 . fix: "invalid sort key" error in "view" view
-. push down Url, Date in "view" view
-. test/fix typeahead find in "view" view
 . allow sorting by date or url of view listing all xhprof runs
 . cache parsed xhprof data when viewing same trace again
 . avoid generating hkprof trace when viewing another trace
