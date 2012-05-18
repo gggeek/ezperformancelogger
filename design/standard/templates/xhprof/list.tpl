@@ -23,12 +23,14 @@
     <tr>
         <th>Run</th>
         <th>Date</th>
+        <th>Client IP</th>
         <th>Url</th>
     </tr>
     {foreach $runs_list as $run_id => $desc sequence array('bglight','bgdark') as $bgColor}
     <tr class="{$bgColor}">
         <td><a href={concat('/xhprof/view/?run=', $run_id)|ezurl()}>{$run_id|wash()}</a></td>
         <td>{$desc.time|l10n('datetime')}</td>
+        <td>{$desc.ip|wash()}</td>
         <td><a href="{$desc.url|wash()}">{$desc.url|wash()}</a></td>
     </tr>
     {/foreach}
