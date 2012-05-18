@@ -20,15 +20,9 @@
     </metadata>
 
     <dependencies>
-        <extends>
-            <extension name="ezwebin" />
-        </extends>
         <requires>
-            <extension name="ggwebservices" />
+            <extension name="ezjscore" />
         </requires>
-        <uses>
-            <extension name="ezsnmpd" />
-        </uses>
     </dependencies>
 
 </software>
