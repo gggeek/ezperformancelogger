@@ -179,7 +179,7 @@ function ChildRowToolTip(cell, metric)
 }
 
 $(document).ready(function() {
-  $('td[@metric]').tooltip(
+  $('td[metric]').tooltip(
     { bodyHandler: function() {
           var type = $(this).attr('type');
           var metric = $(this).attr('metric');

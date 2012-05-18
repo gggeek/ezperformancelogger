@@ -16,7 +16,7 @@
                 return;
             }
             var tokens = jQuery('body').html().match( /<!-- XHProf runs: \S+ -->/g );
-            if ( tokens.length )
+            if ( tokens != null && tokens.length )
             {
 
                 // since this js is not passed the correct path from template, we have
