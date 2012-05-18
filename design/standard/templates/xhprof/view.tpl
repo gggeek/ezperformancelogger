@@ -11,7 +11,7 @@
 {ezscript_require( array( 'jquery.tooltip.js', 'jquery.autocomplete.js', 'xhprof_report.js', 'ezxhprof_report.js' ) )}
 
 <dl id="xhprofextrainfo">
-<dd><b>URL</b> {$info.url|wash()}</dd>
+<dd><b>URL</b> <a href="{$info.url|wash()}">{$info.url|wash()}</a></dd>
 <dd><b>Date</b> {$info.time|l10n('datetime')}</dd>
 </dl>
 
