@@ -127,6 +127,7 @@ class eZPerfLogger
                     break;
 
                 case 'logfile':
+                case 'syslog':
                     /// same format as Apache "combined" by default
                     /// @todo it's not always a 200 ok response...
                     $size = strlen( $output );
@@ -146,8 +147,17 @@ class eZPerfLogger
                             $text .= $values[$i] ." ";
                         }
                     }
-                    $text .= "\n";
-                    file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
+                    if ( $method == 'logfile' )
+                    {
+                        $text .= "\n";
+                        file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
+                    }
+                    else
+                    {
+                        // syslog: we use apache log format for lack of a better idea...
+                        openlog( "eZPerfLog", LOG_PID, LOG_USER );
+                        syslog( LOG_INFO, $text );
+                    }
                     break;
 
                 case 'database':
