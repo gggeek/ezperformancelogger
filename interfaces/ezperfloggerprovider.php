@@ -14,9 +14,16 @@ interface eZPerfLoggerProvider
     /**
      * This method is called (by the framework) to allow this class to provide
      * values for the variables it caters to.
+     * @param string $output current page output
      * @return array variable name => value
      */
-    public static function measure();
+    public static function measure( $output );
+
+    /**
+     * Returns the list of variables this Provider can measure
+     * @return array
+     */
+    public static function supportedVariables();
 }
 
 ?>

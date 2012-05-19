@@ -22,6 +22,9 @@ interface eZPerfLoggerLogger
     * This method gets called to actually log data
     * @param string $logmethod
     * @param array $data $varname => $value
+    * @param string $output passed here in case logger wants to examine it more
+    *
+    * @todo could add a bool return val in case logging fails
     */
     public static function doLog( $logmethod, $data );
 }

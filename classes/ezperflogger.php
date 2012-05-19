@@ -12,6 +12,7 @@
 class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
 {
     static protected $custom_variables = array();
+    static protected $outputSize = null;
 
     /**
      * Record a value associated with a given variable name.
@@ -27,7 +28,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
      */
     static public function recordValues( array $vars )
     {
-        foreach( $vars as $varname => $value )
+        foreach( $vars as $varName => $value )
         {
             self::$custom_variables[$varName] = $value;
         }
@@ -45,48 +46,79 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
     {
         // look up any perf data provider, and ask each one to record its values
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
-        {
-            /// @todo !important check that $class exposes the correct interface
-            $measured = call_user_func( array( $measuringClass, 'measure' ) );
-            if ( is_array( $measured ) )
-            {
-                self::recordValues( $measured );
-            }
-            else
-            {
-                eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
-            }
-        }
-        // build the array with the values we want to record in the logs -
-        // only the ones corresponding to variables defined in the ini file,
-        // not all the values measured so far
-        /// @todo !important replace with a faster array_intersect?
-        $values = array();
-        foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-        {
-            $values[$var] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
-        }
 
-        // for each logging type configured, log values to it
-        foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
+        $skip = false;
+
+        $filters = $ini->variable( 'GeneralSettings', 'LogFilters' );
+        // cater to 'array reset' situations
+        foreach( $filters as $i => $v )
         {
-            $logged = false;
-            foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
+            if ( $v == '' )
             {
-                /// @todo !important check that $class exposes the correct interface
-                if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
+                unset( $filters[$i] );
+            }
+        }
+        if ( count( $filters ) )
+        {
+            $skip = true;
+            foreach( $filters as $filterClass )
+            {
+                if ( call_user_func_array( array( $filterClass, 'shouldLog' ), array( $output ) ) )
                 {
-
-                    call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $values ) );
-                    $logged = true;
+                    $skip = false;
                     break;
                 }
             }
-            if ( !$logged )
+        }
+
+        if ( ! $skip )
+        {
+            // get perf data from all registered providers
+            foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
             {
-                eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
+                /// @todo !important check that $class exposes the correct interface
+                $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output ) );
+                if ( is_array( $measured ) )
+                {
+                    self::recordValues( $measured );
+                }
+                else
+                {
+                    eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
+                }
             }
+
+            // build the array with the values we want to record in the logs -
+            // only the ones corresponding to variables defined in the ini file,
+            // not all the values measured so far
+            /// @todo !important replace with a faster array_intersect?
+            $values = array();
+            foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+            {
+                $values[$var] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
+            }
+
+            // for each logging type configured, log values to it
+            foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
+            {
+                $logged = false;
+                foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
+                {
+                    /// @todo !important check that $class exposes the correct interface
+                    if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
+                    {
+
+                        call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $values ) );
+                        $logged = true;
+                        break;
+                    }
+                }
+                if ( !$logged )
+                {
+                    eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
+                }
+            }
+
         }
 
         if ( eZXHProfLogger::isRunning() )
@@ -106,18 +138,32 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         return $output;
     }
 
+    static public function supportedVariables()
+    {
+        return array( 'execution_time', 'mem_usage', 'db_queries', 'output_size', 'xhkprof_runs' );
+    }
+
     /**
      * This method is called to allow this class to provide values for the measurements
      * variables it caters to.
      * In this case, it actually gets called by self::filter().
      */
-    static public function measure()
+    static public function measure( $output )
     {
         global $scriptStartTime;
 
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        // This var we want to save as it is used for logs even when not in TrackVariables
+        /// @todo this way of passing data around is not really beautiful...
+        self::$outputSize = strlen( $output );
+
         $out = array();
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
         $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+
+        if ( in_array( 'ouput_size', $vars ) )
+        {
+            $out['execution_time'] = self::$outputSize;
+        }
 
         if ( in_array( 'execution_time', $vars ) )
         {
@@ -207,7 +253,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
             case 'syslog':
                 /// same format as Apache "combined" by default
                 /// @todo it's not always a 200 ok response...
-                $size = strlen( $output );
+                $size = self::$outputSize;
                 if ( $size == 0 )
                     $size = '-';
                 $text = self::apacheLogLine( 'combined', $size, 200 ) . ' ';
@@ -262,7 +308,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
                     'time' => time(),
                     /// @todo
                     'response_status' => "200",
-                    'response_size' => strlen( $output ),
+                    'response_size' => self::$outputSize,
                     'counters' => $values
                 ) ) );
                 break;
@@ -529,6 +575,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
                 return $_SERVER["REMOTE_ADDR"] . ' - - [' . date( 'd/M/Y:H:i:s O' ) . '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size;
         }
     }
+
 }
 
 ?>

@@ -11,7 +11,10 @@ perf logging:
 . add to app some sample spreadsheets where to copy data into that come with pre-made formulas to show eg. view-cache relevancy
 . allow using a Pinba server as target for measurements
 . allow user to set a callback function to make perf logging optional (triggerable)
-. allow using snmp traps for logs
+. allow using snmp traps for as target for measurements
+. add some sample filters (eg. log if total time too long or db queries too many or db time too long)
+
+. do some basic testing: pps with no tracing, with tracing on, with debug on
 
 xhprof:
 . fix typeahead find in "view" view
