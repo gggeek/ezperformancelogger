@@ -77,6 +77,7 @@ class eZPerformanceLoggerOperators {
                 $operatorValue = null;
                 break;
             case 'record_value':
+                eZPerfLogger::recordValue( $namedParameters['name'], $operatorValue );
                 $operatorValue = null;
         }
     }

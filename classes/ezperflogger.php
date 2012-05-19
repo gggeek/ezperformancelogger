@@ -9,54 +9,9 @@
  * @copyright (C) G. Giunta 2008-2012
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
-class eZPerfLogger
+class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
 {
     static protected $custom_variables = array();
-
-    /**
-     * This method is called to allow this class to provide values for the measurements
-     * variables it caters to.
-     * It does so by calling eZPerfLogger::recordValue
-     */
-    static public function measure()
-    {
-        global $scriptStartTime;
-
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
-        if ( in_array( 'execution_time', $vars ) )
-        {
-            self::recordValue( 'execution_time', round( microtime( true ) - $scriptStartTime, 3 ) );
-        }
-        if ( in_array( 'mem_usage', $vars ) )
-        {
-            self::recordValue( 'mem_usage', round( memory_get_peak_usage( true ), -3 ) );
-        }
-        if ( in_array( 'db_queries', $vars ) )
-        {
-            // (nb: only works when debug is enabled?)
-            $dbini = eZINI::instance();
-            // we cannot use $db->databasename() because we get the same for mysql and mysqli
-            $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
-            $type .= '_query';
-            // read accumulator
-            $debug = eZDebug::instance();
-            if ( isset( $debug->TimeAccumulatorList[$type] ) )
-            {
-                $queries= $debug->TimeAccumulatorList[$type]['count'];
-            }
-            else
-            {
-                $queries = "0"; // can not tell between 0 reqs per page and no debug...
-            }
-            self::recordValue( 'db_queries', $queries );
-        }
-        if ( in_array( 'xhkprof_runs', $vars ) )
-        {
-            self::recordValue( 'xhkprof_runs', implode( ',', eZXHProfLogger::runs() ) );
-        }
-
-    }
 
     /**
      * Record a value associated with a given variable name.
@@ -65,6 +20,17 @@ class eZPerfLogger
     static public function recordValue( $varName, $value )
     {
         self::$custom_variables[$varName] = $value;
+    }
+
+    /**
+     * Record a list of value associated with a set of variables
+     */
+    static public function recordValues( array $vars )
+    {
+        foreach( $vars as $varname => $value )
+        {
+            self::$custom_variables[$varName] = $value;
+        }
     }
 
     /**
@@ -77,122 +43,49 @@ class eZPerfLogger
      */
     static public function filter( $output )
     {
-
         // look up any perf data provider, and ask each one to record its values
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $class )
+        foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
         {
-            call_user_func( array( $class, 'measure' ) );
+            /// @todo !important check that $class exposes the correct interface
+            $measured = call_user_func( array( $measuringClass, 'measure' ) );
+            if ( is_array( $measured ) )
+            {
+                self::recordValues( $measured );
+            }
+            else
+            {
+                eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
+            }
         }
-
         // build the array with the values we want to record in the logs -
-        // only the ones corresponding to variables defined in the ini file
+        // only the ones corresponding to variables defined in the ini file,
+        // not all the values measured so far
+        /// @todo !important replace with a faster array_intersect?
         $values = array();
         foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
         {
-            $values[$i] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
+            $values[$var] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
         }
 
         // for each logging type configured, log values to it
-        foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $method )
+        foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
         {
-            switch( $method )
+            $logged = false;
+            foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
             {
-                case 'apache':
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-                    {
-                        /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                        apache_note( $var, $values[$i] );
-                    }
-                    break;
+                /// @todo !important check that $class exposes the correct interface
+                if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
+                {
 
-                case 'piwik':
-                    $text = '';
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-                    {
-                        $text .= "\npiwikTracker.setCustomVariable( $i, \"$var\", \"{$values[$i]}\", \"page\" );";
-                    }
-                    $text .= "\npiwikTracker.trackPageView();";
-                    $output = preg_replace( '/piwikTracker\.trackPageView\( *\);?/', $text, $output );
+                    call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $values ) );
+                    $logged = true;
                     break;
-
-                case 'googleanalytics':
-                    $text = '';
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-                    {
-                        $text .= "\n_gaq.push([$i, '$var', '{$values[$i]}', 3]);";
-                    }
-                    $text .= "\n_gaq.push(['_trackPageview']);";
-                    $output = preg_replace( "/_gaq.push\( *[ *['\"]_trackPageview['\"] *] *\);?/", $text, $output );
-                    break;
-
-                case 'logfile':
-                case 'syslog':
-                    /// same format as Apache "combined" by default
-                    /// @todo it's not always a 200 ok response...
-                    $size = strlen( $output );
-                    if ( $size == 0 )
-                        $size = '-';
-                    $text = self::apacheLogLine( 'combined', $size, 200 ) . ' ';
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-                    {
-                        // do same as apache does: replace nulls with "-"
-                        if ( ((string)$values[$i] ) === '' )
-                        {
-                            $text .= "- ";
-                        }
-                        else
-                        {
-                            /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                            $text .= $values[$i] ." ";
-                        }
-                    }
-                    if ( $method == 'logfile' )
-                    {
-                        $text .= "\n";
-                        file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
-                    }
-                    else
-                    {
-                        // syslog: we use apache log format for lack of a better idea...
-                        openlog( "eZPerfLog", LOG_PID, LOG_USER );
-                        syslog( LOG_INFO, $text );
-                    }
-                    break;
-
-                case 'database':
-                case 'csv':
-                case 'storage':
-                    if ( $method == 'csv' )
-                    {
-                        $storageClass = 'eZPerfLoggerCSVStorage';
-                    }
-                    else if ( $method == 'database' )
-                    {
-                        $storageClass = 'eZPerfLoggerDBStorage';
-                    }
-                    else
-                    {
-                        $storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
-                    }
-                    $counters = array();
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-                    {
-                        $counters[$var] = $values[$i];
-                    }
-                    /// @todo log error if storage class does not implement correct interface
-                    // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
-                    call_user_func( array( $storageClass, 'insertStats' ), array( array(
-                        'url' => $_SERVER["REQUEST_URI"],
-                        'ip' => $_SERVER["REMOTE_ADDR"],
-                        'time' => time(),
-                        /// @todo
-                        'response_status' => "200",
-                        'response_size' => strlen( $output ),
-                        'counters' => $counters
-                    ) ) );
-                    break;
-
+                }
+            }
+            if ( !$logged )
+            {
+                eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
             }
         }
 
@@ -211,6 +104,171 @@ class eZPerfLogger
         }
 
         return $output;
+    }
+
+    /**
+     * This method is called to allow this class to provide values for the measurements
+     * variables it caters to.
+     * In this case, it actually gets called by self::filter().
+     */
+    static public function measure()
+    {
+        global $scriptStartTime;
+
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        $out = array();
+        $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+
+        if ( in_array( 'execution_time', $vars ) )
+        {
+            $out['execution_time'] = round( microtime( true ) - $scriptStartTime, 3 );
+        }
+
+        if ( in_array( 'mem_usage', $vars ) )
+        {
+            $out['mem_usage'] = round( memory_get_peak_usage( true ), -3 );
+        }
+
+        if ( in_array( 'db_queries', $vars ) )
+        {
+            // (nb: only works when debug is enabled?)
+            $dbini = eZINI::instance();
+            // we cannot use $db->databasename() because we get the same for mysql and mysqli
+            $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
+            $type .= '_query';
+            // read accumulator
+            $debug = eZDebug::instance();
+            if ( isset( $debug->TimeAccumulatorList[$type] ) )
+            {
+                $queries= $debug->TimeAccumulatorList[$type]['count'];
+            }
+            else
+            {
+                 // NB: to tell diffrence between 0 db reqs per page and no debug we could look for ezini(debugoutput)...
+                $queries = "0";
+            }
+            $out['db_queries'] = $queries;
+        }
+
+        if ( in_array( 'xhkprof_runs', $vars ) )
+        {
+            $out['xhkprof_runs'] = implode( ',', eZXHProfLogger::runs() );
+        }
+
+        return $out;
+    }
+
+    /**
+     * This method gets called by self::filter()
+     */
+    public static function supportedLogMethods()
+    {
+        return array ( 'apache', 'piwik', 'googleanalytics', 'logfile', 'syslog', 'database', 'csv', 'storage' );
+    }
+
+    /**
+     * This method gets called by self::filter()
+     */
+    public static function doLog( $method, $values )
+    {
+        switch( $method )
+        {
+            case 'apache':
+                foreach( $values as $varname => $value )
+                {
+                    /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
+                    apache_note( $varname, $value );
+                }
+                break;
+
+            case 'piwik':
+                $ini = eZINI::instance( 'ezperformancelogger.ini' );
+                $text = '';
+                foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                {
+                    $text .= "\npiwikTracker.setCustomVariable( $i, \"$var\", \"{$values[$var]}\", \"page\" );";
+                }
+                $text .= "\npiwikTracker.trackPageView();";
+                $output = preg_replace( '/piwikTracker\.trackPageView\( *\);?/', $text, $output );
+                break;
+
+            case 'googleanalytics':
+                $ini = eZINI::instance( 'ezperformancelogger.ini' );
+                $text = '';
+                foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                {
+                    $text .= "\n_gaq.push([$i, '$var', '{$values[$var]}', 3]);";
+                }
+                $text .= "\n_gaq.push(['_trackPageview']);";
+                $output = preg_replace( "/_gaq.push\( *[ *['\"]_trackPageview['\"] *] *\);?/", $text, $output );
+                break;
+
+            case 'logfile':
+            case 'syslog':
+                /// same format as Apache "combined" by default
+                /// @todo it's not always a 200 ok response...
+                $size = strlen( $output );
+                if ( $size == 0 )
+                    $size = '-';
+                $text = self::apacheLogLine( 'combined', $size, 200 ) . ' ';
+                foreach( $values as $varname => $value )
+                {
+                    // do same as apache does: replace nulls with "-"
+                    if ( ((string)$value ) === '' )
+                    {
+                        $text .= "- ";
+                    }
+                    else
+                    {
+                        /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
+                        $text .= $value . " ";
+                    }
+                }
+                if ( $method == 'logfile' )
+                {
+                    $text .= "\n";
+                    $ini = eZINI::instance( 'ezperformancelogger.ini' );
+                    file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
+                }
+                else
+                {
+                    // syslog: we use apache log format for lack of a better idea...
+                    openlog( "eZPerfLog", LOG_PID, LOG_USER );
+                    syslog( LOG_INFO, $text );
+                }
+                break;
+
+            case 'database':
+            case 'csv':
+            case 'storage':
+                if ( $method == 'csv' )
+                {
+                    $storageClass = 'eZPerfLoggerCSVStorage';
+                }
+                else if ( $method == 'database' )
+                {
+                    $storageClass = 'eZPerfLoggerDBStorage';
+                }
+                else
+                {
+                    $storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
+                }
+
+                /// @todo log error if storage class does not implement correct interface
+                // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
+                call_user_func( array( $storageClass, 'insertStats' ), array( array(
+                    'url' => $_SERVER["REQUEST_URI"],
+                    'ip' => $_SERVER["REMOTE_ADDR"],
+                    'time' => time(),
+                    /// @todo
+                    'response_status' => "200",
+                    'response_size' => strlen( $output ),
+                    'counters' => $values
+                ) ) );
+                break;
+
+            /// @todo !important log a warning for default case
+        }
     }
 
     /**
