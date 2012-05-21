@@ -21,7 +21,7 @@ interface eZPerfLoggerStorage
      *        'counters' => array
      * @return bool false on error
      */
-    public static function insertStats( $data );
+    public static function insertStats( array $data );
 }
 
 ?>

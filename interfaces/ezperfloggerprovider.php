@@ -21,7 +21,7 @@ interface eZPerfLoggerProvider
 
     /**
      * Returns the list of variables this Provider can measure
-     * @return array
+     * @return array varname => type
      */
     public static function supportedVariables();
 }

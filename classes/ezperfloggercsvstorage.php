@@ -15,7 +15,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
      * @see eZPerfLoggerStorage::insertStats
      * @param array $data
      */
-    public static function insertStats( $data )
+    public static function insertStats( array $data )
     {
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
         $csvfile = $ini->variable( 'csvSettings', 'FileName' );

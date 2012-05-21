@@ -6,8 +6,8 @@
  */
 
 /**
- * Interface implemented by classes which can be used to decide whether to log
- * perf. data at all.
+ * Interface implemented by classes which can be used to decide whether
+ * perf. data should be logged at all.
  */
 interface eZPerfLoggerFilter
 {
@@ -16,10 +16,11 @@ interface eZPerfLoggerFilter
      * LogFilters in ezperformancelogger.ini.
      * As soon as one class returns true, logging is activated
      *
-     * @string $output current page output
+     * @param array $data $varname => $value All the perf counters measured
+     * @string $output Current page output
      * @return bool
      */
-    public static function shouldLog( $output );
+    public static function shouldLog( array $data, $output );
 }
 
 ?>

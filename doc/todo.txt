@@ -1,26 +1,37 @@
 perf logging:
-. direct-to-db logging
-. import parsed data to db (aggregated)
-. module/views to display data from db
-. more pkis in std logger: cluster queries, custom ones?...
-. fetch functions to retrieve data when it's in the db
-. allow csv output tu use comma instead of dot for float numbers
-. script to wget and measure a whole site
-. create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
-  (see http://openelibrary.org/development/piwik-custom-data-tracking/)
-. add to app some sample spreadsheets where to copy data into that come with pre-made formulas to show eg. view-cache relevancy
-. allow using a Pinba server as target for measurements
-. allow using snmp traps for as target for measurements
-. allow to use statsd as target for measurements (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
-. add some sample filters (eg. log if total time too long or db queries too many or db time too long)
+. self-contained db logging
+  . direct-to-db logging
+  . import parsed data to db (and aggregate it to a data-cube)
+  . module/views to display data from db
+  . fetch functions to retrieve data when it's in the db
+. more pkis in std logger
+  . cluster queries, ...
+  . allow logging all timing points (by using naming convention)
+  . allow logging all snmp values (by using naming convention) if ezsnmpd is enabled
+. more logging targets
+  . allow using a Pinba server as target
+  . allow using snmp traps for as target
+  . allow to use statsd as target (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
+. improve existing logging targets
+  . allow csv output tu use comma instead of dot for float numbers
+  . create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
+    (see http://openelibrary.org/development/piwik-custom-data-tracking/)
+. improve php api
+  . add new perf. measurement functions: increment/decrement value, measure time?
+  . add new perf. measurement functions: flush to log now
 
-. do some basic testing: pps with no tracing, with tracing on, with debug on
+. script to wget and measure a whole site
+. add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
+. add some sample filters (eg. log if total time too long or db queries too many or db time too long)
+. add some nice tutorial with common usecases and advanced features
+. do some basic load testing: pps with no tracing, with tracing on, with debug on
+
 
 xhprof:
 . fix typeahead find in "view" view
 . fix: "invalid sort key" error in "view" view
-. allow sorting by date or url of view listing all xhprof runs
+. allow sorting by url (or other?) of view listing all xhprof runs
 . cache parsed xhprof data when viewing same trace again
-. avoid generating hkprof trace when viewing another trace
 . add support for picking 2 runs for comparison (in 'list' view)
+. avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches

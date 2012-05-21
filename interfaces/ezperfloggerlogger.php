@@ -19,14 +19,15 @@ interface eZPerfLoggerLogger
     public static function supportedLogMethods();
 
     /**
-    * This method gets called to actually log data
-    * @param string $logmethod
-    * @param array $data $varname => $value
-    * @param string $output passed here in case logger wants to examine it more
-    *
-    * @todo could add a bool return val in case logging fails
-    */
-    public static function doLog( $logmethod, $data );
+     * This method will get called to actually log data (depending on configuration
+     * of LogMethods in ezperformanceLogger.ini)
+     * @param string $logmethod
+     * @param array $data $varname => $value The perf counters to log
+     * @param string $output Current page output; passed here in case logger wants to examine it more ormaybe even modify it
+     *
+     * @todo could add a bool return val in case logging fails?
+     */
+    public static function doLog( $logmethod, array $data, &$ouput );
 }
 
 ?>

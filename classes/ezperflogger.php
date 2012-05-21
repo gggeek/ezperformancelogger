@@ -1,9 +1,14 @@
 <?php
 /**
- * An 'output filter' class that does not filter anything, but logs some perf values
- * to different "log" types.
+ * The class implementing most of the logic of performance logging:
+ * - it is registered as an 'output filter' class that does not filter anything, but triggers
+ *   perf. data measurement and logging at the end of page execution
+ * - it implements the 2 interfaces that we use to divide the workflow in: provider, logger
+ * - it also implements methods allowing other code to directly record measured perf data,
+ *   to parse perf-data from Apache-formatted log files, and to create Apache-formatted logs
  *
  * @todo log total cluster queries (see code in ezdebug extension)
+ * @todo !important separate the logger and provider parts in separate classes
  *
  * @author G. Giunta
  * @copyright (C) G. Giunta 2008-2012
@@ -14,9 +19,16 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
     static protected $custom_variables = array();
     static protected $outputSize = null;
 
+    /*** Methods available to php code wanting to record perf data without hassles ***/
+
     /**
-     * Record a value associated with a given variable name.
-     * The value will then be logged if in the ezperflogger.ini file that variable is set to be logged
+     * Record a perf. value associated with a given variable name.
+     * The value will then be logged if in the ezperflogger.ini file that variable
+     * is set to be logged in TrackVars.
+     * Note that $value should be an integer/float by preference, as some loggers
+     * might have problems with strings containing spaces, commas or other special chars
+     * @param string $varName
+     * @param mixed $value
      */
     static public function recordValue( $varName, $value )
     {
@@ -24,7 +36,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
     }
 
     /**
-     * Record a list of value associated with a set of variables
+     * Record a list of values associated with a set of variables in a single call
      */
     static public function recordValues( array $vars )
     {
@@ -44,87 +56,16 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
      */
     static public function filter( $output )
     {
-        // look up any perf data provider, and ask each one to record its values
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        // perf logging: measure variables and log them according to configuration
+        $values = self::getValues( true, $output );
+        self::logIfNeeded( $values, $output );
 
-        $skip = false;
-
-        $filters = $ini->variable( 'GeneralSettings', 'LogFilters' );
-        // cater to 'array reset' situations
-        foreach( $filters as $i => $v )
-        {
-            if ( $v == '' )
-            {
-                unset( $filters[$i] );
-            }
-        }
-        if ( count( $filters ) )
-        {
-            $skip = true;
-            foreach( $filters as $filterClass )
-            {
-                if ( call_user_func_array( array( $filterClass, 'shouldLog' ), array( $output ) ) )
-                {
-                    $skip = false;
-                    break;
-                }
-            }
-        }
-
-        if ( ! $skip )
-        {
-            // get perf data from all registered providers
-            foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
-            {
-                /// @todo !important check that $class exposes the correct interface
-                $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output ) );
-                if ( is_array( $measured ) )
-                {
-                    self::recordValues( $measured );
-                }
-                else
-                {
-                    eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
-                }
-            }
-
-            // build the array with the values we want to record in the logs -
-            // only the ones corresponding to variables defined in the ini file,
-            // not all the values measured so far
-            /// @todo !important replace with a faster array_intersect?
-            $values = array();
-            foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
-            {
-                $values[$var] = isset( self::$custom_variables[$var] ) ? self::$custom_variables[$var] : null;
-            }
-
-            // for each logging type configured, log values to it
-            foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
-            {
-                $logged = false;
-                foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
-                {
-                    /// @todo !important check that $class exposes the correct interface
-                    if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
-                    {
-
-                        call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $values ) );
-                        $logged = true;
-                        break;
-                    }
-                }
-                if ( !$logged )
-                {
-                    eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
-                }
-            }
-
-        }
-
+        // profiling
         if ( eZXHProfLogger::isRunning() )
         {
             eZXHProfLogger::stop();
         }
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
         if ( $ini->variable( 'XHProfSettings', 'AppendXHProfTag' ) == 'enabled' && $runs = eZXHProfLogger::runs() )
         {
             $xhtag = "<!-- XHProf runs: " . implode( ',', $runs ) . " -->";
@@ -138,21 +79,134 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         return $output;
     }
 
-    static public function supportedVariables()
+    /**
+     * Returns all the perf. values measured so far.
+     * @param bool $domeasure If true, will trigger data collection from registered perf-data providers,
+     *                        otherwise only data recorded via calls to recordValue(s) will be returned
+     * @param string $output page output so far
+     * @too !important split method in 2 methods, with one public and one protected?
+     */
+    public static function getValues( $domeasure, $output )
     {
-        return array( 'execution_time', 'mem_usage', 'db_queries', 'output_size', 'xhkprof_runs' );
+        if ( $domeasure )
+        {
+            // look up any perf data provider, and ask each one to give us its values
+            $ini = eZINI::instance( 'ezperformancelogger.ini' );
+            foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
+            {
+                /// @todo !important check that $measuringClass exposes the correct interface
+                $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output ) );
+                if ( is_array( $measured ) )
+                {
+                    self::recordValues( $measured );
+                }
+                else
+                {
+                    eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
+                }
+            }
+        }
+        return self::$custom_variables;
     }
 
     /**
-     * This method is called to allow this class to provide values for the measurements
+     * Sends to the logging subsystem the perf data in $values.
+     * - checking first if there is any logging filter class registered
+     * - removing from $values all variables not defined in ezperformancelogger.ini/TrackVars
+     *
+     * @too !important split method in 2 methods, with one public and one protected?
+     */
+    protected static function logIfNeeded( array $values, &$output )
+    {
+        // check if there is any registered filter class. If there is, ask it whether we should log or not
+        $skip = false;
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        $filters = $ini->variable( 'GeneralSettings', 'LogFilters' );
+        // cater to 'array reset' situations: only 1 empty val in the array
+        if ( count( $filters ) > 2 || ( count( $filters ) == 1 && $filters[0] != '' ) )
+        {
+            $skip = true;
+            foreach( $filters as $filterClass )
+            {
+                if ( call_user_func_array( array( $filterClass, 'shouldLog' ), array( $values, $output ) ) )
+                {
+                    $skip = false;
+                    break;
+                }
+            }
+        }
+
+        if ( ! $skip )
+        {
+            // build the array with the values we want to record in the logs -
+            // only the ones corresponding to variables defined in the ini file,
+            // not all the values measured so far
+            $toLog = array();
+            foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $varName )
+            {
+                $toLog[$varName] = isset( $values[$varName] ) ? $values[$varName] : null;
+            }
+
+            // for each logging type configured, log values to it, using the class which supports it
+            foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
+            {
+                $logged = false;
+                foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
+                {
+                    /// @todo !important check that $loggerClass exposes the correct interface
+                    if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
+                    {
+
+                        call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $toLog, $output ) );
+                        $logged = true;
+                        break;
+                    }
+                }
+                if ( !$logged )
+                {
+                    eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
+                }
+            }
+
+        }
+    }
+
+    /*** Handling of the perf variables this class can measure natively. These methods should be protected and not used by external code  ***/
+
+    /**
+     * Note: this list will be "untrue" when some other php code has called eZPerfLogger::recordVale(),
+     * as there will be more variables available. Shall we add 'custom' or '*' here?
+     */
+    static public function supportedVariables()
+    {
+        $out = array(
+            'execution_time' => 'float (seconds, rounded to 1msec)',
+            'mem_usage' => 'int (bytes, rounded to 1000)',
+            'output_size' => 'int (bytes)'
+        );
+        if ( eZDebug::isDebugEnabled() )
+        {
+            $out['db_queries'] = 'int';
+        }
+        if ( extension_loaded( 'xhprof' ) )
+        {
+            $out['xhkprof_runs'] = 'string (csv list of identifiers)';
+        }
+        return $out;
+    }
+
+    /**
+     * This method is called to allow this class to provide values for the perf
      * variables it caters to.
      * In this case, it actually gets called by self::filter().
+     * @param string $output
      */
     static public function measure( $output )
     {
         global $scriptStartTime;
 
-        // This var we want to save as it is used for logs even when not in TrackVariables
+        // This var we want to save as it is used for logs even when not present in TrackVariables.
+        // Also using ga / piwik logs do alter $output, making length calculation in doLog() unreliable
         /// @todo this way of passing data around is not really beautiful...
         self::$outputSize = strlen( $output );
 
@@ -190,7 +244,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
             }
             else
             {
-                 // NB: to tell diffrence between 0 db reqs per page and no debug we could look for ezini(debugoutput)...
+                 // NB: to tell diffrence between 0 db reqs per page and no debug we could look for ezdebug::isenabled,
+                 // but what if it was enabled at some point and later disabled?...
                 $queries = "0";
             }
             $out['db_queries'] = $queries;
@@ -204,6 +259,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         return $out;
     }
 
+    /*** Handling the log targets this class can use. These methods should be protected and not used by external code ***/
+
     /**
      * This method gets called by self::filter()
      */
@@ -215,7 +272,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
     /**
      * This method gets called by self::filter()
      */
-    public static function doLog( $method, $values )
+    public static function doLog( $method, array $values, &$output )
     {
         switch( $method )
         {
@@ -274,7 +331,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
                 {
                     $text .= "\n";
                     $ini = eZINI::instance( 'ezperformancelogger.ini' );
-                    file_put_contents( $ini->variable( 'GeneralSettings', 'PerfLogFileName' ), $text, FILE_APPEND );
+                    file_put_contents( $ini->variable( 'logfileSettings', 'FileName' ), $text, FILE_APPEND );
                 }
                 else
                 {
@@ -313,13 +370,16 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
                 ) ) );
                 break;
 
-            /// @todo !important log a warning for default case
+            /// @todo !important log a warning for default case (unhandled log format)
         }
     }
+
+    /*** other stuff ***/
 
     /**
      * Parse a log file (apache "extended" format expected, with perf. values at the end),
      * retrieve performance values from it and store them in a storage provider
+     * @param string $logFilePath
      */
     static public function parseLog( $logFilePath )
     {

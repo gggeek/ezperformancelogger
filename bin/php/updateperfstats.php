@@ -50,7 +50,7 @@ if ( in_array( 'apache', $logTo ) && !in_array( 'logfile', $logTo ) )
 }
 else if ( !in_array( 'apache', $logTo ) && in_array( 'logfile', $logTo ) )
 {
-    $logFilePath = $plIni->variable( 'GeneralSettings', 'PerfLogFileName' );
+    $logFilePath = $plIni->variable( 'logfileSettings', 'FileName' );
 }
 else
 {
