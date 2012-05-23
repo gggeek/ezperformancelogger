@@ -192,6 +192,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         {
             $out['xhkprof_runs'] = 'string (csv list of identifiers)';
         }
+        if ( isset( $_SERVER['UNIQUE_ID '] ) )
+        {
+            $out['unique_id'] = 'string (unique per-request identifier)';
+        }
         return $out;
     }
 
@@ -254,6 +258,11 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         if ( in_array( 'xhkprof_runs', $vars ) )
         {
             $out['xhkprof_runs'] = implode( ',', eZXHProfLogger::runs() );
+        }
+
+        if ( in_array( 'unique_id', $vars ) )
+        {
+            $out['unique_id'] = $_SERVER['UNIQUE_ID'];
         }
 
         return $out;
