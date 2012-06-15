@@ -8,6 +8,8 @@ It will work with ezdebug turned off, and tries to be lightweight not to slow
 down your server too much because of the measurements. For the same reason by
 default it does not store performance data into the database, but as part of
 the existing Apache log.
+The amount of performance data measured is fully configurable, as well as the
+mechanism used to record it.
 
 It doubles as profiling tool as well, since version 0.4.
 This means having at your fingertips more detailed information that the standard
@@ -29,7 +31,7 @@ Requirements:
 How it works: performance logging
 ---------------------------------
 
-- by logging performance indicators for every page view
+- by logging performance indicators  - for every page view -
   Supported indicators are, so far:
   . total execution time
   . total memory usage
@@ -40,7 +42,8 @@ How it works: performance logging
   . the Apache access log
   . the piwik web analytics engine
   . the google analytics engine
-  . a separate log file
+  . a separate log file (Apache-log format)
+  . a separate log file (csv format)
   and in the future even more.
 
   Logging to the Apache acces log is recommended for a number of reasons: by default
@@ -52,21 +55,34 @@ How it works: performance logging
   command line script is provided: updateperfstats.
   It can be used in a 2-phase performance analysis scenario:
   Phase 1: enable and configure ezperformanceogger to log to Apache log or to a
-           custom lo file; execute load tests
+           custom log file; execute load tests
   Phase 2: run php extension/ezperformancelogger/bin/php/updateperfstats.php to
            parse the Apache access log and produce a csv file; import that csv
            file in your preferred spreadsheet tool or database
+
+  If you don't care so much about a very small performance loss, you can log
+  performance data directly to a csv-formatted log file, and skip execution
+  of the updateperfstats.php script.
 
 NB: the extension does not yet provide a way to visualize the logged
 data, you will need an external tool for that:
 . for data streamed to the Apache log or a separate log file, a spreadsheet program which can import csv files
 . for data streamed to piwik or ga, use the analytics tool web interface
 
-Notes about collected data:
+Notes:
 - measured script runtime is a bit shorter than reality, as we can not hook at the very beginning and end of php process execution
 - measured time is rounded to milliseconds
 - measured ram usage is rounded to 1000 bytes
-- db queries executed can only (most likely?) be measured when debug ouput is turned on
+- db queries executed can oby default only be measured when debug ouput is turned on.
+  We provide an alternative db-connector class, only for eZ 4.6 / mysqli, which can be
+  used to measure detailed db information when debug ouput is turned off
+  (see files site.ini and ezperformancelogger.ini for details)
+- eZ pages wich end in a redirection or terminate execution during the view will
+  not log data by default. To force even those pages to be measured you will have
+  to patch the index.php file and add the following line to it:
+      eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+  a good candidate location is next to the existing eZExecution::addCleanupHandler call
+
 
 
 How it works: profiling
@@ -89,3 +105,7 @@ How it works: profiling
   it is enabled any memory or execution time numbers logged will be useless
 
 - for more info on XHProf, Google is your friend
+
+Notes:
+- profiling info is not clustered. It will only be available on the webserver where
+  it was generated

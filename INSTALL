@@ -10,7 +10,7 @@ For performance logging
 2. edit ezperformancelogger.ini to decide the data you want to log:
    parameter [GeneralSettings]/TrackVariables
    See file README for more details avout available data
-   NB: db_queies logging only works with ez debug on
+   NB: db_queries logging by default only works with ez debug on
 
 
 3. edit ezperformancelogger.ini to decide how to log it:
@@ -51,6 +51,23 @@ For performance logging
 
    NB: the extension does not provide any means to visualize the logged data.
    You can use any tool from excel to matlab for that.
+
+
+5. to log db performances with Debug Output disabled, uncomment the 
+   appropriate line in settings/site.ini.append.php and use one of the db
+   connectors provided by the extension (currently only for eZP 4.6 on mysqli)
+
+
+6. to log cluster-db performances with Debug Output disabled, uncomment the 
+   appropriate line in settings/file.ini.append.php and use one of the cluster db
+   connectors provided by the extension (currently only for eZP 4.6 on mysqli)
+
+
+7. to log performance data even on web pages which end prematurely or redirect
+   you need to patch the index.php file and add somewhere the following line:
+      eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+   a good candidate location is next to the existing eZExecution::addCleanupHandler call
+
 
 
 For profiling
