@@ -10,8 +10,6 @@
 require 'autoload.php';
 
 $cli = eZCLI::instance();
-$endl = $cli->endlineString();
-
 $script = eZScript::instance( array( 'description' => '...',
                                      'use-session' => false,
                                      'use-modules' => true,
@@ -78,7 +76,7 @@ if ( $logFilePath != '' )
 $dt = new eZDateTime();
 $cli->output( "Finished at " . $dt->toString() . "\n"  );
 if ( $script->verboseOutputLevel() > 0 )
-    $cli->output( "Perf counters have been updated!\n" );
+    $cli->output( "Perf counters have been updated\n" );
 
 $script->shutdown();
 

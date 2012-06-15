@@ -11,6 +11,6 @@ if ( !$isQuiet )
 eZXHProfLogger::removeSavedRuns();
 
 if ( !$isQuiet )
-    $cli->output( "XHProf saved runs data removed!" );
+    $cli->output( "XHProf saved runs data removed" );
 
 ?>

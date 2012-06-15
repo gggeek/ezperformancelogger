@@ -42,6 +42,6 @@ if ( $logFilePath != '' )
 
 
 if ( !$isQuiet )
-    $cli->output( "Perf counters have been updated!" );
+    $cli->output( "Perf counters have been updated" );
 
 ?>

@@ -15,7 +15,7 @@ perf logging:
   . yoochoose / odoscope trackers
 
 . improve existing logging targets
-  . allow csv output tu use comma instead of dot for float numbers
+  . allow csv output to use comma instead of dot for float numbers
   . create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
     (see http://openelibrary.org/development/piwik-custom-data-tracking/)
 . improve php api
@@ -27,7 +27,7 @@ perf logging:
 . add some sample filters (eg. log if total time too long or db queries too many or db time too long)
 . add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate)
 . do some basic load testing: pps with no tracing, with tracing on, with debug on
-. get the code triggerable via event system instead of filter system for fture-proofing
+. get the code triggerable via event system instead of filter system for future-proofing
 
 
 xhprof:
@@ -38,3 +38,5 @@ xhprof:
 . add support for picking 2 runs for comparison (in 'list' view)
 . avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches
+
+. use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...
