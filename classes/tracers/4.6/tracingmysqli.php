@@ -47,7 +47,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
      */
     protected function _selectOne( $query, $fname, $error = false, $debug = false, $fetchCall )
     {
-        self::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
+        eZPerfLogger::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
         $time = microtime( true );
 
         $res = mysqli_query( $this->db, $query );
@@ -61,7 +61,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
             else
             {
                 $this->_error( $query, $fname, $error );
-                self::accumulatorStop( 'mysql_cluster_query' );
+                eZPerfLogger::accumulatorStop( 'mysql_cluster_query' );
                 // @todo Throw an exception
                 return false;
             }
@@ -73,12 +73,12 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         if ( $nRows > 1 )
         {
             eZDebug::writeError( 'Duplicate entries found', $fname );
-            self::accumulatorStop( 'mysql_cluster_query' );
+            eZPerfLogger::accumulatorStop( 'mysql_cluster_query' );
             // @todo throw an exception instead. Should NOT happen.
         }
         elseif ( $nRows === 0 )
         {
-            self::accumulatorStop( 'mysql_cluster_query' );
+            eZPerfLogger::accumulatorStop( 'mysql_cluster_query' );
             return false;
         }
 
@@ -88,7 +88,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
             $query = "SQL for _selectOneAssoc:\n" . $query . "\n\nRESULT:\n" . var_export( $row, true );
 
         $time = microtime( true ) - $time;
-        self::accumulatorStop( 'mysql_cluster_query' );
+        eZPerfLogger::accumulatorStop( 'mysql_cluster_query' );
 
         $this->_report( $query, $fname, $time );
         return $row;
@@ -103,7 +103,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
      */
     protected function _query( $query, $fname = false, $reportError = true )
     {
-        self::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
+        eZPerfLogger::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
         $time = microtime( true );
 
         $res = mysqli_query( $this->db, $query );
@@ -115,7 +115,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         $numRows = mysqli_affected_rows( $this->db );
 
         $time = microtime( true ) - $time;
-        self::accumulatorStop( 'mysql_cluster_query' );
+        eZPerfLogger::accumulatorStop( 'mysql_cluster_query' );
 
         $this->_report( $query, $fname, $time, $numRows );
         return $res;
@@ -135,7 +135,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         $fname = "_checkCacheGenerationTimeout( $generatingFilePath, $generatingFileMtime )";
 
         // reporting
-        self::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
+        eZPerfLogger::accumulatorStart( 'mysql_cluster_query', 'MySQL Cluster', 'DB queries' );
         $time = microtime( true );
 
         $nameHash = $this->_md5( $generatingFilePath );
@@ -187,65 +187,27 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
 
     ### perf tracing stuff
 
-    static $timeAccumulatorList = array();
-
-    protected static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
-    {
-        $startTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
-        {
-            eZDebug::accumulatorStart( $val, $group, $label );
-        }
-        if ( !isset( self::$timeAccumulatorList[$val] ) )
-        {
-            self::$timeAccumulatorList[$val] = array( 'group' => $group, 'data' => array(), 'time' => 0 );
-        }
-        self::$timeAccumulatorList[$val]['temp_time'] = $startTime;
-        if ( $data !== null )
-        {
-            self::$timeAccumulatorList[$val]['data'][] = $data;
-        }
-    }
-
-    protected static function accumulatorStop( $val )
-    {
-        $stopTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
-        {
-            eZDebug::accumulatorStop( $val );
-        }
-        if ( !isset( self::$timeAccumulatorList[$val]['count'] ) )
-        {
-            self::$timeAccumulatorList[$val]['count'] = 1;
-        }
-        else
-        {
-            self::$timeAccumulatorList[$val]['count'] = self::$timeAccumulatorList[$val]['count'] + 1;
-        }
-        self::$timeAccumulatorList[$val]['time'] = $stopTime - self::$timeAccumulatorList[$val]['temp_time'] + self::$timeAccumulatorList[$val]['time'];
-    }
-
-    public static function timeAccumulators()
-    {
-        return self::$timeAccumulatorList;
-    }
-
     static public function measure()
     {
+        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+
+        $measured = array();
         foreach( array( 'mysql_cluster_query' ) as $name )
         {
-            if ( isset( self::$timeAccumulatorList[$name] ) )
+            if ( isset( $timeAccumulatorList[$name] ) )
             {
-                eZPerfLogger::recordValue( $name, self::$timeAccumulatorList[$name]['count'] );
-                eZPerfLogger::recordValue( $name . '_t', self::$timeAccumulatorList[$name]['time'] );
+                $measured[$name] = $timeAccumulatorList[$name]['count'];
+                $measured[$name . '_t'] = $timeAccumulatorList[$name]['time'];
+                $measured[$name . '_tmax'] = $timeAccumulatorList[$name]['maxtime'];
             }
             else
             {
-                eZPerfLogger::recordValue( $name, 0 );
-                eZPerfLogger::recordValue( $name . '_t', 0 );
+                $measured[$name] = 0;
+                $measured[$name . '_t'] = 0;
+                $measured[$name . '_tmax'] = 0;
             }
         }
-        eZPerfLogger::recordValue( 'mysqli_offsets_s', "'" . ( is_array( @self::$timeAccumulatorList['mysqli_loop']['data'] ) ? implode( ',', self::$timeAccumulatorList['mysqli_loop']['data'] )  : '' ) . "'" );
+        return $measured;
     }
 
     /**

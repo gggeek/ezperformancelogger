@@ -14,11 +14,12 @@
  * @copyright (C) G. Giunta 2008-2012
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
-class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
+class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLoggerTimeMeasurer
 {
     static protected $custom_variables = array();
     static protected $outputSize = null;
     static protected $has_run = false;
+    static protected $timeAccumulatorList = array();
 
     /*** Methods available to php code wanting to record perf data without hassles ***/
 
@@ -410,6 +411,54 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
 
             /// @todo !important log a warning for default case (unhandled log format)
         }
+    }
+
+    /** Handling of time measurements whe eZDebug is off **/
+
+    public static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
+    {
+        $startTime = microtime( true );
+        if ( eZDebug::isDebugEnabled() )
+        {
+            eZDebug::accumulatorStart( $val, $group, $label );
+        }
+        if ( !isset( self::$timeAccumulatorList[$val] ) )
+        {
+            self::$timeAccumulatorList[$val] = array( 'group' => $group, 'data' => array(), 'time' => 0, 'maxtime' => 0 );
+        }
+        self::$timeAccumulatorList[$val]['temp_time'] = $startTime;
+        if ( $data !== null )
+        {
+            self::$timeAccumulatorList[$val]['data'][] = $data;
+        }
+    }
+
+    public static function accumulatorStop( $val )
+    {
+        $stopTime = microtime( true );
+        if ( eZDebug::isDebugEnabled() )
+        {
+            eZDebug::accumulatorStop( $val );
+        }
+        if ( !isset( self::$timeAccumulatorList[$val]['count'] ) )
+        {
+            self::$timeAccumulatorList[$val]['count'] = 1;
+        }
+        else
+        {
+            self::$timeAccumulatorList[$val]['count'] = self::$timeAccumulatorList[$val]['count'] + 1;
+        }
+        $thisTime = $stopTime - self::$timeAccumulatorList[$val]['temp_time'];
+        self::$timeAccumulatorList[$val]['time'] = $thisTime + self::$timeAccumulatorList[$val]['time'];
+        if ( $thisTime > self::$timeAccumulatorList[$val]['maxtime'] )
+        {
+            self::$timeAccumulatorList[$val]['maxtime'] = $thisTime;
+        }
+    }
+
+    public static function TimeAccumulatorList()
+    {
+        return self::$timeAccumulatorList;
     }
 
     /*** other stuff ***/
