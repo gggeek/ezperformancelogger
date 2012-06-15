@@ -9,4 +9,6 @@ Scripts[]=updateperfstats.php
 [CronjobPart-removexhprofdata]
 Scripts[]=removexhprofdata.php
 
+[CronjobPart-rotateperflogs]
+Scripts[]=rotateperflogs.php
 */ ?>
