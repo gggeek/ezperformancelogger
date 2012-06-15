@@ -18,6 +18,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
 {
     static protected $custom_variables = array();
     static protected $outputSize = null;
+    static protected $has_run = false;
 
     /*** Methods available to php code wanting to record perf data without hassles ***/
 
@@ -56,6 +57,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
      */
     static public function filter( $output )
     {
+        self::$has_run = true;
+
         // perf logging: measure variables and log them according to configuration
         $values = self::getValues( true, $output );
         self::logIfNeeded( $values, $output );
@@ -77,6 +80,32 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger
         }
 
         return $output;
+    }
+
+    /**
+     * This function can be called at the end of every page, including the ones
+     * that end via redirect (and thus do not call "filter").
+     * In order to do so, you need to call at some point in your controller
+     * eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+     */
+    static public function cleanup()
+    {
+        if ( !self::$has_run )
+        {
+            // nb: since the adding of this function as cleanup handler is not automatically
+            // disabled just by disabling this extension in site.ini (whereas 'filter' is),
+            // we just check here if extension is enabled or not.
+            if ( self::isEnabled() )
+            {
+                 self::filter( '' );
+            }
+        }
+    }
+
+    static public function isEnabled()
+    {
+        /// @todo look if eZExtension or similar class already has similar code
+        return in_array( 'ezperformancelogger', eZINI::instance()->variable( 'ExtensionSettings', 'ActiveExtensions' ) );
     }
 
     /**
