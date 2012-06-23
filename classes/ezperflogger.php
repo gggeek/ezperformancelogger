@@ -723,6 +723,43 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
+    /**
+     * Rotates a log file, if it's bigger than  $maxSize bytes.
+     * Rotated files get a .20120612_122359 stringa ppended to their name
+     * If $maxFiles is > 0, only $maxFiles files are kept, other eliminated
+     */
+    public static function rotateLogs( $dir, $filename, $maxSize=0, $maxFiles=0 )
+    {
+        $filepath = "$dir/$filename";
+        if ( is_file( $filepath ) && filesize( $filepath ) > $maxSize )
+        {
+            if ( !rename( $filepath, $filepath . "." . strftime( '%Y%m%d_%H%M%S' ) ) )
+            {
+                eZDebug::writeWarning( "Could not rotate log file $filepath", __METHOD__ );
+            }
+        }
+        if ( $maxFiles )
+        {
+            $files = array();
+            foreach( scandir( $dir ) as $afile )
+            {
+                if ( is_file( "$dir/$afile" ) && strpos( $afile, $filename ) === 0 )
+                {
+                    $ext = substr( strrchr( $afile, "." ), 1 );
+                    $files[$ext] = $afile;
+                }
+            }
+            if ( count( $files ) > $maxFiles )
+            {
+                ksort( $files );
+                $oldest = "$dir/" . reset( $files );
+                if ( !unlink( $oldest ) )
+                {
+                    eZDebug::writeWarning( "Could not remove log file $oldest", __METHOD__ );
+                }
+            }
+        }
+    }
 }
 
 ?>
