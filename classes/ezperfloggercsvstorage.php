@@ -33,12 +33,13 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
         }
         if ( $addheader )
         {
+            fwrite( $fp, "Timestamp{$separator}" );
             fwrite( $fp, implode( $separator, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) );
             fwrite( $fp, "{$separator}Date{$separator}IP Address{$separator}Response Status{$separator}Response size{$separator}URL\n" );
         }
         foreach( $data as $line )
         {
-            $data = $line['counters'];
+            $data = array_merge( array( $line['time'] ), $line['counters'] );
             $data[] = date( 'd/M/Y:H:i:s O', $line['time'] );
             $data[] = $line['ip'];
             $data[] = $line['response_status'];

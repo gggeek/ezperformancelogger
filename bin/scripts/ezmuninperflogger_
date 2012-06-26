@@ -1,0 +1,61 @@
+#!/bin/sh
+
+########################################
+#
+# This is a Munin plugin, that allows display via Munin graphs of all performance
+# variables tracked by ezperformancelogger.
+# NB: for this to work, the logging method 'csv' must be enabled
+# (see ezperformancelogger.ini for details)
+#
+# This file has to be symlinked (or copied) into the Munin plugins directory.
+# It needs 2 config variables, which can be set in file /etc/munin/plugin-conf.d/ezmuninperflogger
+#
+# [ezmuninperflogger_*]
+# env.php /path/to/php
+# env.ezpublishroot /path/to/the/ez/publish/directory
+#
+########################################
+
+# Magic markers:
+#%# family=manual
+#%# capabilities=autoconf suggest
+
+# Config variables setup
+
+# Directory where eZ Publish is installed.
+# @todo if it is not set in config file, use the 'find' command to look for extension/ezperformancelogger/bin/php/muninplugin.php,
+#       and if only one is found, we can set up $EZPUBLISHROOT automagically
+EZPUBLISHROOT=${ezpublishroot:-/path/to/the/ez/publish/directory}
+
+# Location of the PHP Command Line Interface binary.
+# We init it to 'which php' if it is not set in config file
+PHP=${php}
+if [ -z "$PHP" ]; then
+    PHP=`which php`
+    if [ -z "$PHP" ]; then
+       PHP=/usr/local/bin/php
+    fi
+fi
+
+# Support automatic configuration of the plugin:
+# if $1 == "autoconf", test 1st for proper php and ez variables, and if they are,
+# call the php script with autoconf argument
+if [ "$1" = "autoconf" ]; then
+    if [ ! -x "$PHP" ]; then
+      echo "No ('$PHP' is not an executable, need to configure /etc/munin/plugin-conf.d/ezmuninperflogger)"
+      exit 0
+    fi;
+    # @todo test if $PHP is THE php executable by running eg. php -v ...
+    if [ ! -f "$EZPUBLISHROOT/index.php" ]; then
+      echo "No ('$EZPUBLISHROOT' is not an eZ Publish install, need to configure /etc/munin/plugin-conf.d/ezmuninperflogger)"
+      exit 0
+    fi;
+    if [ ! -f "$EZPUBLISHROOT/extension/ezperformancelogger/bin/php/muninplugin.php" ]; then
+      echo "No ('$EZPUBLISHROOT' does not contain ezperformancelogger extension, probably need to configure /etc/munin/plugin-conf.d/ezmuninperflogge\)"
+      exit 0
+    fi;
+fi
+
+# @todo if this is invoked via ". scriptname", $0 will be "-bash" ...
+VARIABLE=`basename $0`
+cd $EZPUBLISHROOT && $PHP extension/ezperformancelogger/bin/php/muninplugin.php --variable=$VARIABLE $*

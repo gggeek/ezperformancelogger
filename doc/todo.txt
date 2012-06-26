@@ -1,3 +1,7 @@
+1. test custom db data
+2. check: can easily log cluster queries from debug output?
+3. add logging of any existing timing point
+
 perf logging:
 . self-contained db logging
   . direct-to-db logging
@@ -16,7 +20,7 @@ perf logging:
 
 . improve existing logging targets
   . allow csv output to use comma instead of dot for float numbers
-  . create a custom plugin for piwik to better visaulize our data, and possibly store it in dedicated tables
+  . create a custom plugin for piwik to better visualize our data, and possibly store it in dedicated tables
     (see http://openelibrary.org/development/piwik-custom-data-tracking/)
 . improve php api
   . add new perf. measurement functions: increment/decrement value, measure time?
