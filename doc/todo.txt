@@ -33,6 +33,8 @@ perf logging:
 . do some basic load testing: pps with no tracing, with tracing on, with debug on
 . get the code triggerable via event system instead of filter system for future-proofing
 
+. use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...
+
 
 xhprof:
 . fix typeahead find in "view" view
@@ -43,4 +45,6 @@ xhprof:
 . avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches
 
-. use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...
+munin:
+. add php script that installs the munin plugin on its own
+. allow graphing the number of ez pages served (different from Apache logs, as we cont no css/js/etc)

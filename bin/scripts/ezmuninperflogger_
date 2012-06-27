@@ -7,24 +7,54 @@
 # NB: for this to work, the logging method 'csv' must be enabled
 # (see ezperformancelogger.ini for details)
 #
-# This file has to be symlinked (or copied) into the Munin plugins directory.
-# It needs 2 config variables, which can be set in file /etc/munin/plugin-conf.d/ezmuninperflogger
+# Installation instructions:
 #
-# [ezmuninperflogger_*]
-# env.php /path/to/php
-# env.ezpublishroot /path/to/the/ez/publish/directory
+# 1. This file has to be symlinked (or copied) into the Munin plugins directory
+#    /usr/share/munin/plugins/
+#    Do not forget to make it executable as well (chmod 755).
+#
+# 2. It needs 2 config variables, which can be set in file /etc/munin/plugin-conf.d/ezmuninperflogger
+#    (copy the 3 lines below and edit the values between angle brackets)
+#
+#    [ezmuninperflogger_*]
+#    env.php </path/to/php>
+#    env.ezpublishroot </path/to/the/ez/publish/directory>
+#
+# 3. run "munin-node-configure --suggest" to check if the configuration works.
+#    If it does, you should see in the ouput a line similar to:
+#
+#    ezmuninperflogger_         | no   | yes (+db_queries +execution_time +mem_usage)
+#
+#    the "yes" in the 2nd column is important. Between parenthesis you get the
+#    list of variables which can be graphed
+#
+# 4. activate the plugin: run "munin-node-configure --suggest --shell"
+#    You should get 3 lines with "ln -s ..." commands. Execute them
+#
+# 5. test that it works: run: munin-run ezmuninperflogger_$varname
+#    (where $varname is one of the variable names you got at point 3)
+#    You should get 3 lines similar to these:
+#
+#    execution_time_avg.value 0.234
+#    execution_time_min.value 0.123
+#    execution_time_max.value 0.345
+#
+# 6. restart munin-node: /etc/init.d/munin-node restart
+#
+# Nothing should be edited below this line by users of this tool
 #
 ########################################
 
 # Magic markers:
-#%# family=manual
+#%# family=auto
 #%# capabilities=autoconf suggest
 
 # Config variables setup
 
 # Directory where eZ Publish is installed.
-# @todo if it is not set in config file, use the 'find' command to look for extension/ezperformancelogger/bin/php/muninplugin.php,
-#       and if only one is found, we can set up $EZPUBLISHROOT automagically
+# @todo if it is not set in config file, we could use the 'find' command to look
+#       for extension/ezperformancelogger/bin/php/muninplugin.php
+#       and if only one is found, set up $EZPUBLISHROOT automagically
 EZPUBLISHROOT=${ezpublishroot:-/path/to/the/ez/publish/directory}
 
 # Location of the PHP Command Line Interface binary.
@@ -40,7 +70,7 @@ fi
 # Support automatic configuration of the plugin:
 # if $1 == "autoconf", test 1st for proper php and ez variables, and if they are,
 # call the php script with autoconf argument
-if [ "$1" = "autoconf" ]; then
+if [ "$1" == "autoconf" ]; then
     if [ ! -x "$PHP" ]; then
       echo "No ('$PHP' is not an executable, need to configure /etc/munin/plugin-conf.d/ezmuninperflogger)"
       exit 0
@@ -56,6 +86,6 @@ if [ "$1" = "autoconf" ]; then
     fi;
 fi
 
-# @todo if this is invoked via ". scriptname", $0 will be "-bash" ...
-VARIABLE=`basename $0`
+# get the basename of $0 - funky shell syntax gotten from munin wiki
+VARIABLE=${0##*/}
 cd $EZPUBLISHROOT && $PHP extension/ezperformancelogger/bin/php/muninplugin.php --variable=$VARIABLE $*

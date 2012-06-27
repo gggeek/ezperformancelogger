@@ -74,7 +74,7 @@ switch ( $command )
         break;
 
     case 'config':
-        echo "graph_category eZ Performance Logger\n";
+        echo "graph_category ezperformancelogger\n";
         $title = false;
         foreach( array( '', '_avg', '_min', '_max' ) as $suffix )
         {

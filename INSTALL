@@ -53,12 +53,12 @@ For performance logging
    You can use any tool from excel to matlab for that.
 
 
-5. to log db performances with Debug Output disabled, uncomment the 
+5. to log db performances with Debug Output disabled, uncomment the
    appropriate line in settings/site.ini.append.php and use one of the db
    connectors provided by the extension (currently only for eZP 4.6 on mysqli)
 
 
-6. to log cluster-db performances with Debug Output disabled, uncomment the 
+6. to log cluster-db performances with Debug Output disabled, uncomment the
    appropriate line in settings/file.ini.append.php and use one of the cluster db
    connectors provided by the extension (currently only for eZP 4.6 on mysqli)
 
@@ -68,6 +68,24 @@ For performance logging
       eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
    a good candidate location is next to the existing eZExecution::addCleanupHandler call
 
+
+For graphing performance indicators with Munin
+----------------------------------------------
+
+1. make sure you have a valid munin-node installation on your webserver
+
+2. configure eZPerformanceLogger to record as many variables as you want (see
+   paragraph above).
+   The only constraint is that LOGGING TO CSV FILE HAS TO BE ENABLED (see point 4.c)
+
+3. customize how the variables recorded by eZPerformanceLogger will show up
+   in Munin graphs by editing ini settings in the [MuninSettings] section of
+   ezperformancelogger.ini
+
+4. activate the munin plugin provided within the extension.
+   Detailed instructions for this step you will find in the file
+
+   bin/scripts/ezmuninperflogger_
 
 
 For profiling

@@ -1,7 +1,9 @@
 changelog from version 0.6 to 0.7 - released 2012.yy.xx
 
 * New features
-. Added a new method: eZPerfLogger::cleanup, whic can be registered as ezexecution cleanup handler, to allow
+. The BIG new feature of this release: integration with Munin!
+  More details in the INSTALL file
+. Added a new method: eZPerfLogger::cleanup, which can be registered as ezexecution cleanup handler, to allow
   perf tracing of those pages which terminate with a redirect / direct exit
 . Added a cronjob and a cli script to archive the perf log files (both apache-style and csv one).
   The cronjob only rotates the log files if they are above a set size, the cli script always archives them
