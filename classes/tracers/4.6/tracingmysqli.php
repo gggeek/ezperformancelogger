@@ -1,38 +1,82 @@
 <?php
 /**
- * File containing the eZDFSFileHandlerMySQLiBackend class.
- *
- * @copyright Copyright (C) 1999-2011 eZ Systems AS. All rights reserved.
- * @license http://ez.no/eZPublish/Licenses/eZ-Business-Use-License-Agreement-eZ-BUL-Version-2.0 eZ Business Use License Agreement Version 2.0
- * @version 4.6.0
- * @package kernel
- */
-
-/*
-This is the structure / SQL CREATE for the DFS database table.
-It can be created anywhere, in the same database on the same server, or on a
-distinct database / server.
-
-CREATE TABLE ezdfsfile (
-  `name` text NOT NULL,
-  name_trunk text NOT NULL,
-  name_hash varchar(34) NOT NULL DEFAULT '',
-  datatype varchar(60) NOT NULL DEFAULT 'application/octet-stream',
-  scope varchar(25) NOT NULL DEFAULT '',
-  size bigint(20) unsigned NOT NULL DEFAULT '0',
-  mtime int(11) NOT NULL DEFAULT '0',
-  expired tinyint(1) NOT NULL DEFAULT '0',
-  `status` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (name_hash),
-  KEY ezdfsfile_name (`name`(250)),
-  KEY ezdfsfile_name_trunk (name_trunk(250)),
-  KEY ezdfsfile_mtime (mtime),
-  KEY ezdfsfile_expired_name (expired,`name`(250))
-) ENGINE=InnoDB;
+ * Extends the eZDFSFileHandlerMySQLiBackend class to add tracing points
  */
 
 class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBackend
 {
+
+    /**
+     * Reimplement parent's method to make use of a tracing dfs backend class
+     */
+    public function _connect()
+    {
+        $siteINI = eZINI::instance( 'site.ini' );
+        // DB Connection setup
+        // This part is not actually required since _connect will only be called
+        // once, but it is useful to run the unit tests. So be it.
+        // @todo refactor this using eZINI::setVariable in unit tests
+        if ( parent::$dbparams === null )
+        {
+            $fileINI = eZINI::instance( 'file.ini' );
+
+            parent::$dbparams = array();
+            parent::$dbparams['host']       = $fileINI->variable( 'eZDFSClusteringSettings', 'DBHost' );
+            $dbPort = $fileINI->variable( 'eZDFSClusteringSettings', 'DBPort' );
+            parent::$dbparams['port']       = $dbPort !== '' ? $dbPort : null;
+            parent::$dbparams['socket']     = $fileINI->variable( 'eZDFSClusteringSettings', 'DBSocket' );
+            parent::$dbparams['dbname']     = $fileINI->variable( 'eZDFSClusteringSettings', 'DBName' );
+            parent::$dbparams['user']       = $fileINI->variable( 'eZDFSClusteringSettings', 'DBUser' );
+            parent::$dbparams['pass']       = $fileINI->variable( 'eZDFSClusteringSettings', 'DBPassword' );
+
+            parent::$dbparams['max_connect_tries'] = $fileINI->variable( 'eZDFSClusteringSettings', 'DBConnectRetries' );
+            parent::$dbparams['max_execute_tries'] = $fileINI->variable( 'eZDFSClusteringSettings', 'DBExecuteRetries' );
+
+            parent::$dbparams['sql_output'] = $siteINI->variable( "DatabaseSettings", "SQLOutput" ) == "enabled";
+
+            parent::$dbparams['cache_generation_timeout'] = $siteINI->variable( "ContentSettings", "CacheGenerationTimeout" );
+        }
+
+        $serverString = parent::$dbparams['host'];
+        if ( parent::$dbparams['socket'] )
+            $serverString .= ':' . parent::$dbparams['socket'];
+        elseif ( parent::$dbparams['port'] )
+            $serverString .= ':' . parent::$dbparams['port'];
+
+        $maxTries = parent::$dbparams['max_connect_tries'];
+        $tries = 0;
+        while ( $tries < $maxTries )
+        {
+            if ( $this->db = mysqli_connect( parent::$dbparams['host'], parent::$dbparams['user'], parent::$dbparams['pass'], parent::$dbparams['dbname'], parent::$dbparams['port'] ) )
+                break;
+            ++$tries;
+        }
+        if ( !$this->db )
+            throw new eZClusterHandlerDBNoConnectionException( $serverString, parent::$dbparams['user'], parent::$dbparams['pass'] );
+
+        /*if ( !mysql_select_db( parent::$dbparams['dbname'], $this->db ) )
+           throw new eZClusterHandlerDBNoDatabaseException( parent::$dbparams['dbname'] );*/
+
+        // DFS setup
+        if ( $this->dfsbackend === null )
+        {
+            $this->dfsbackend = new eZDFSFileHandlerTracing46DFSBackend();
+        }
+
+        $charset = trim( $siteINI->variable( 'DatabaseSettings', 'Charset' ) );
+        if ( $charset === '' )
+        {
+            $charset = eZTextCodec::internalCharset();
+        }
+
+        if ( $charset )
+        {
+            if ( !mysqli_set_charset( $this->db, eZMySQLCharset::mapTo( $charset ) ) )
+            {
+                $this->_fail( "Failed to set Database charset to $charset." );
+            }
+        }
+    }
 
     /**
      * Runs a select query, applying the $fetchCall callback to one result
@@ -192,7 +236,7 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
 
         $measured = array();
-        foreach( array( 'mysql_cluster_query' ) as $name )
+        foreach( array( 'mysql_cluster_query', 'mysql_cluster_dfs_operations', 'mysql_cluster_cache_waits' ) as $name )
         {
             if ( isset( $timeAccumulatorList[$name] ) )
             {
@@ -210,43 +254,6 @@ class eZDFSFileHandlerTracing46MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         return $measured;
     }
 
-    /**
-     * DB connexion handle
-     * @var handle
-     */
-    public $db = null;
-
-    /**
-     * DB connexion parameters
-     * @var array
-     */
-    protected static $dbparams = null;
-
-    /**
-     * Amount of executed queries, for debugging purpose
-     * @var int
-     */
-    protected $numQueries = 0;
-
-    /**
-     * Current transaction level.
-     * Will be used to decide wether we can BEGIN (if it's the first BEGIN call)
-     * or COMMIT (if we're commiting the last running transaction
-     * @var int
-     */
-    protected $transactionCount = 0;
-
-    /**
-     * DB file table name
-     * @var string
-     */
-    const TABLE_METADATA = 'ezdfsfile';
-
-    /**
-     * Distributed filesystem backend
-     * @var eZDFSFileHandlerDFSBackend
-     */
-    protected $dfsbackend = null;
 }
 
 ?>
