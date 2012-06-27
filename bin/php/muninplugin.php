@@ -38,7 +38,7 @@ else
 // plugin, appending graph name to the original plugin file name. The shell script
 // will pass us its own filename in the 'variable' option
 $variable = isset( $options['variable'] ) ? $options['variable'] : '';
-$variable = preg_replace( '/$ezmuninperflogger_/', '', $variable );
+$variable = preg_replace( '/^ezmuninperflogger_/', '', $variable );
 
 // default munin range: 5 minutes
 $range = $options['range'] ? $options['range'] : 60 * 5;
@@ -99,7 +99,12 @@ switch ( $command )
 
     case 'fetch':
     default:
-        if ( $variable == '' || !in_array( $variable, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) )
+        if ( $variable == '' )
+        {
+            $cli->output( "Error: you are using the ezmuninperflogger_ script as munin plugin. You should create symlinks named ezmuninperflogger_\$varname instead" );
+            $script->shutdown( -1 );
+        }
+        if ( !in_array( $variable, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) )
         {
             $cli->output( "Error: '$variable' is not a tracked perf. variable" );
             $script->shutdown( -1 );
