@@ -9,6 +9,7 @@
  * @copyright (C) G. Giunta 2012
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
+ * @todo add support for "install" and "uninstall" commands
  */
 
 require 'autoload.php';
@@ -48,8 +49,12 @@ $ini = eZINI::instance( 'ezperformancelogger.ini' );
 switch ( $command )
 {
     case 'autoconf':
-        /// @todo
+        // This command is called by munin to know if all config needed by this plugin has been done right.
+        // If the php script can actually run succesfully, this means it has (config is needed to tell
+        // Munin where php is and where this script is)
+
         $siteIni = eZINI::instance();
+        /// @todo use smarter way of checking if extension is enabled, as it can be in ActiveAccessExtensions as well
         if ( !in_array( 'ezperformancelogger', $siteIni->variable( 'ExtensionSettings', 'ActiveExtensions' ) ) )
         {
             $cli->output( "no (extension ezperformancelogger not enabled)" );
@@ -65,8 +70,8 @@ switch ( $command )
         break;
 
     case 'suggest':
-        // this command is called by munin to get a list of graphs that this plugin supports
-        // see http://munin-monitoring.org/wiki/ConcisePlugins
+        // This command is called by munin to get a list of graphs that this plugin supports
+        // See http://munin-monitoring.org/wiki/ConcisePlugins
         foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $var )
         {
             echo "$var\n";
@@ -74,7 +79,9 @@ switch ( $command )
         break;
 
     case 'config':
-        echo "graph_category ezperformancelogger\n";
+        // This command is called by munin to get info about how to graph the measured values
+        // (it is called every 5 minutes, just before 'fetch')
+        echo "graph_category " . $ini->variable( 'MuninSettings', 'GroupName' ) . "\n";
         $title = false;
         foreach( array( '', '_avg', '_min', '_max' ) as $suffix )
         {
@@ -158,6 +165,7 @@ switch ( $command )
                             {
                                 $values['max'] = $val;
                             }
+                            /// @todo how to avoid overflows of integer values (eg. bytes per page) when there are many page views?
                             $values['total'] = $values['total'] + $val;
                         }
                     }
