@@ -8,7 +8,7 @@
  * @copyright (C) G. Giunta 2008-2012
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
-class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
+class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogParser
 {
 
     /**
@@ -49,6 +49,37 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage
         }
         fclose( $fp );
         return true;
+    }
+
+    static public function parseLogLine( $line, $counters = array(), $excludeRegexps = array() )
+    {
+        $countersCount = count( $counters );
+
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        $separator = $ini->variable( 'csvSettings', 'Separator' );
+
+        $logPartArray = explode( $separator, $line, $countersCount + 6 );
+        if ( count( $logPartArray ) < $countersCount + 6 )
+        {
+            return false;
+        }
+
+        $url = rtrim( $logPartArray[$countersCount + 5], "\n" );
+        foreach( $excludeRegexps as $regexp )
+        {
+            if ( preg_match( $regexp, $url ) )
+            {
+                return true;
+            }
+        }
+
+        return array(
+            'url' => $url,
+            'time' => $logPartArray[0],
+            'ip' => $logPartArray[$countersCount + 2],
+            'response_status' => $logPartArray[$countersCount + 3],
+            'response_size' => $logPartArray[$countersCount + 4],
+            'counters' => array_slice( $logPartArray, 1, $countersCount ) );
     }
 }
 

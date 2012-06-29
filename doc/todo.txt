@@ -47,8 +47,6 @@ xhprof:
 
 munin:
 . add to php script support for installing the munin plugin on its own
-. allow graphing the number of ez pages served (different from Apache logs, as we count no css/js/etc)
-. use .cdef to pass to munin sum of data + nr. of page views instead of avg, min max
-. munin multigraph to zoom in on single pages?
+. munin multigraph to zoom in on single urls?
 . take care about integer overflow when reporting page size (avg or plain sum)
-. do not measure data always from last 5 minutes, but from last taken sample
+. avoid parsing the log file 10 times in a row when there are 10 variables graphed

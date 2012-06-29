@@ -1,6 +1,6 @@
 <?php
 /**
- * The class implements methods allowing other code to parse perf-data from Apache-formatted log files, and to create Apache-formatted logs
+ * The class implements methods allowing to read/write Apache-style logfiled
  *
  * @author G. Giunta
  * @copyright (C) G. Giunta 2012
@@ -10,60 +10,36 @@ class eZPerfLoggerLogManager
 {
 
     /**
-     * Parse a log file (apache "extended" format expected, with perf. values at the end),
-     * retrieve performance values from it and store them in a storage provider
+     * Parse a log file, retrieve performance values from it and store them in a storage provider
      * @param string $logFilePath
+     * @param string $storageClass class used to parse the lines of the log file, must implement interface: eZPerfLoggerStorage
+     * @param string $logParserClass class used to parse the parsed, must implement interface: eZPerfLoggerLogParser
+     * @param string $tokenFileName a "token" file, stored in var/<vardir>/log, where we save on every invocation the last parsed line
+     * @return mixed false|array array with stats of lines parsed, false on error
      */
-    static public function updatePerfStatsFromApacheLog( $logFilePath )
+    static public function updateStatsFromLogFile( $logFilePath, $logParserClass, $storageClass, $tokenFileName = '', $excludeRegexps = array() )
     {
-
-        $contentArray = array();
-
-        $plIni = eZINI::instance( 'ezperformancelogger.ini' );
-        $ini = eZINI::instance();
-        $logDir = $ini->variable( 'FileSettings', 'LogDir' );
-
-        $sys = eZSys::instance();
-        $varDir = $sys->varDirectory();
-        $updateViewLog = "updateperfstats.log";
-
-        $startLine = "";
-        $hasStartLine = false;
-
-        /// @todo we should store name of apache log file in our token, so that if
-        // it changes in ini file, we do not try to skip anything
-        $updateViewLogPath = $varDir . "/" . $logDir . "/" . $updateViewLog;
-        if ( is_file( $updateViewLogPath ) )
+        if ( $tokenFileName == '' )
         {
-            $fh = fopen( $updateViewLogPath, "r" );
-            if ( $fh )
-            {
-                while ( !feof ( $fh ) )
-                {
-                    $line = fgets( $fh );
-                    if ( preg_match( "/\[/", $line ) )
-                    {
-                        $startLine = $line;
-                        $hasStartLine = true;
-                    }
-                }
-                fclose( $fh );
-            }
+            $tokenFileName = basename( $logFilePath ) . '-parsing.log';
         }
-        if ( $hasStartLine )
+        $startLine = self::readUpdateToken( $tokenFileName );
+        if ( $startLine )
         {
-            eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines" );
+            eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines: $logFilePath", __METHOD__ );
         }
         else
         {
-            eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file" );
+            eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
         }
 
+        $contentArray = array();
         $lastLine = "";
         $startTime = time();
         $count = 0;
-        $storageClass = $plIni->variable( 'ParsingSettings', 'StorageClass' );
-        $excludeRegexps= $plIni->variable( 'ParsingSettings', 'ExcludeUrls' );
+        $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        //$storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
+        //$excludeRegexps = $ini->variable( 'ParsingSettings', 'ExcludeUrls' );
         $skipped = 0;
         $total = 0;
         $parsed = 0;
@@ -74,13 +50,13 @@ class eZPerfLoggerLogManager
             $handle = fopen( $logFilePath, "r" );
             if ( $handle )
             {
-                $noteVars = $plIni->variable( 'GeneralSettings', 'TrackVariables' );
+                $noteVars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
                 //$noteVarsCount = count( $noteVars );
-                $startParse = !$hasStartLine;
+                $startParse = ( $startLine === false );
                 $stopParse = false;
                 while ( !feof( $handle ) and !$stopParse )
                 {
-                    $line = fgets( $handle, 1024 );
+                    $line = fgets( $handle, 4096 );
                     $total++;
                     if ( !empty( $line ) )
                     {
@@ -90,7 +66,7 @@ class eZPerfLoggerLogManager
                         {
                             $parsed++;
 
-                            $parsedLine = self::parseApacheLogLine( $line, $noteVars, $excludeRegexps );
+                            $parsedLine = call_user_func( array( $logParserClass, 'parseLogLine' ), $line, $noteVars, $excludeRegexps ); //self::parseApacheLogLine( $line, $noteVars, $excludeRegexps );
                             if ( is_bool( $parsedLine ) )
                             {
                                 // excluded or invalid line
@@ -136,7 +112,8 @@ class eZPerfLoggerLogManager
         }
         else
         {
-            eZDebug::writeWarning( "Log-file '$logFilePath' doesn't exist, please check your ini-settings and try again.", __METHOD__ );
+            /// demoted to a Debug message, as after rotation this can happen
+            eZDebug::writeDebug( "Log-file '$logFilePath' doesn't exist, please check your ini-settings and try again.", __METHOD__ );
             return false;
         }
 
@@ -147,126 +124,53 @@ class eZPerfLoggerLogManager
             call_user_func( array( $storageClass, 'insertStats' ), $contentArray );
         }
 
+        self::writeUpdateToken( $tokenFileName, $lastLine );
+
+        /*eZDebug::writeDebug( 'Empty lines: ' . $empty );
+           eZDebug::writeDebug( 'Skipped lines: ' . $skipped );
+           eZDebug::writeDebug( 'Parsed lines: ' . $parsed );
+           eZDebug::writeDebug( 'Total lines: ' . $total );*/
+
+        return array( 'empty' => $empty, 'skipped' => $skipped, 'parsed' => $parsed, 'counted' => $count, 'total' => $total );
+    }
+
+    /**
+     * Writes a "token file"
+     * This is useful whenever there are log files which get parse based on cronjobs
+     * and we have to remember the last line which has been found
+     */
+    protected static function writeUpdateToken( $tokenFile, $tokenLine )
+    {
+        $ini = eZINI::instance();
+        $sys = eZSys::instance();
+        $updateViewLogPath = $sys->varDirectory() . "/" . $ini->variable( 'FileSettings', 'LogDir' ) . "/" . $tokenFile;
         $dt = new eZDateTime();
-        $fh = fopen( $updateViewLogPath, "w" );
-        if ( $fh )
+        if ( !file_put_contents(
+            $updateViewLogPath,
+            "# Finished at " . $dt->toString() . "\n" .
+            "# Last updated entry:" . "\n" .
+            $tokenLine . "\n" ) )
         {
-            fwrite( $fh, "# Finished at " . $dt->toString() . "\n" );
-            fwrite( $fh, "# Last updated entry:" . "\n" );
-            fwrite( $fh, $lastLine . "\n" );
-            fclose( $fh );
+            eZDebug::writeError( "Could not store last date of perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
         }
-        else
-        {
-            eZDebug::writeError( "Could not store last date up perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
-        }
-
-        eZDebug::writeDebug( 'Empty lines: ' . $empty );
-        eZDebug::writeDebug( 'Skipped lines: ' . $skipped );
-        eZDebug::writeDebug( 'Parsed lines: ' . $parsed );
-        eZDebug::writeDebug( 'Total lines: ' . $total );
-
-        return $count;
     }
 
     /**
-     * Parses a log line, expected to be in Apache "combined+" format:
-     * - the line must begin with the combined format
-     * - it is expected to contain N more values at the end correspoding to the $counters array
-     * Expected log format: "%h %l %u %t \"%r\" % >s %b \"%{Referer}i\" \"%{User-Agent}i\" [CounterValue]*
-     * @return mixed an array on success, false on failure, true if url matches an excluderegexp
+     * Reads the data previously saved in the token file
+     * @return mixed string|false
      */
-    static public function parseApacheLogLine( $line, $counters = array(), $excludeRegexps = array() )
+    protected static function readUpdateToken( $tokenFile )
     {
-        $countersCount = count( $counters );
-
-        if ( !preg_match( '/([0-9.]+) +([^ ]+) +([^ ]+) +\[([^]]+)\] +(.+)/', $line, $matches ) )
+        $ini = eZINI::instance();
+        $sys = eZSys::instance();
+        $updateViewLogPath = $sys->varDirectory() . "/" . $ini->variable( 'FileSettings', 'LogDir' ) . "/" . $tokenFile;
+        if ( is_file( $updateViewLogPath ) )
         {
-            /// @todo log warning
-            return false;
+            // nb: we need the newline at the end of the saved line for a proper comparison
+            $lines = file( $updateViewLogPath, FILE_SKIP_EMPTY_LINES );
+            return isset( $lines[2] ) ? $lines[2] : false;
         }
-
-        $time = strtotime( implode( ' ', explode( ':', str_replace( '/', '.', $matches[4] ), 2 ) ) );
-        if ( !$time )
-        {
-            /// @todo log warning
-            return false;
-        }
-
-        $ip = $matches[1];
-
-        $logPartArray = explode( '"', $matches[5] ); //preg_split( "/[\"]+/", $line );
-
-        // there is no point in parsing this line further: we miss the perf-data part
-        if ( count( $logPartArray ) < 4 && $countersCount )
-        {
-            return false;
-        }
-
-        // nb: generates a php warning when the url recorded by apache is too long.
-        // In that case apache records a substring of the url in the access log, and here
-        // we will find no protocol part
-        list( $requireMethod, $url, $protocol ) = explode( ' ', $logPartArray[1] );
-
-        foreach( $excludeRegexps as $regexp )
-        {
-            if ( preg_match( $regexp, $url ) )
-            {
-               return true;
-            }
-        }
-
-        list( $respstatus, $respsize ) = explode( ' ', trim( $logPartArray[2], ' ' ) );
-
-        if ( $countersCount )
-        {
-            /// NB: we assume there is no " in the 'perf counters' part
-            $notePart = ltrim( rtrim( $logPartArray[count( $logPartArray )-1], " \n\r" ), ' ' );
-            $notes = explode( ' ', $notePart );
-            if ( count( $notes ) < $countersCount )
-            {
-                // could be any static resource
-                return false;
-            }
-            else if ( count( $notes ) > $countersCount )
-            {
-                // The apache log might be set up to add extra stuff here, between the user agent's string and the perf logging data
-                // so we just ignore it.
-                // Note that this might also be a sign of a config error...
-                $notes = array_slice( $notes, -1 * $countersCount );
-            }
-
-            $counters = array_combine( $counters, $notes );
-        }
-        else
-        {
-            $counters = null;
-        }
-
-        return array(
-            'url' => $url,
-            'time' => $time,
-            'ip' => $ip,
-            'response_status' => $respstatus,
-            'response_size' => $respsize,
-            'counters' => $counters );
-    }
-
-    /**
-     * Returns a string corresponding to Apache log format
-     */
-    static function apacheLogLine( $format = 'common', $size='-', $httpReturn = '200' )
-    {
-        switch ( $format )
-        {
-            /// LogFormat "%h %l %u %t \"%r\" % >s %b \"%{Referer}i\" \"%{User-Agent}i\"
-            /// @todo add values for %l (remote logname), %u (remote user)
-            case 'combined':
-                return $_SERVER["REMOTE_ADDR"] . ' - - [' . date( 'd/M/Y:H:i:s O' ) . '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size . ' "' . @$_SERVER["HTTP_REFERER"] . '" "' . @$_SERVER["HTTP_USER_AGENT"] . '"';
-            case 'common':
-            default:
-                return $_SERVER["REMOTE_ADDR"] . ' - - [' . date( 'd/M/Y:H:i:s O' ) . '] "' . $_SERVER["REQUEST_METHOD"] . ' ' . $_SERVER["REQUEST_URI"]. ' ' . $_SERVER["SERVER_PROTOCOL"] . '" 200 ' . $size;
-        }
+        return false;
     }
 
     /**
@@ -306,6 +210,7 @@ class eZPerfLoggerLogManager
             }
         }
     }
+
 }
 
 ?>

@@ -54,8 +54,7 @@ switch ( $command )
         // Munin where php is and where this script is)
 
         $siteIni = eZINI::instance();
-        /// @todo use smarter way of checking if extension is enabled, as it can be in ActiveAccessExtensions as well
-        if ( !in_array( 'ezperformancelogger', $siteIni->variable( 'ExtensionSettings', 'ActiveExtensions' ) ) )
+        if ( !eZPerfLogger::isEnabled() )
         {
             $cli->output( "no (extension ezperformancelogger not enabled)" );
             $script->shutdown();
@@ -72,7 +71,7 @@ switch ( $command )
     case 'suggest':
         // This command is called by munin to get a list of graphs that this plugin supports
         // See http://munin-monitoring.org/wiki/ConcisePlugins
-        foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $var )
+        foreach( array_merge( $ini->variable( 'GeneralSettings', 'TrackVariables' ), array( 'pageviews' ) ) as $var )
         {
             echo "$var\n";
         }
@@ -82,8 +81,12 @@ switch ( $command )
         // This command is called by munin to get info about how to graph the measured values
         // (it is called every 5 minutes, just before 'fetch')
         echo "graph_category " . $ini->variable( 'MuninSettings', 'GroupName' ) . "\n";
+        $pageviews = false;
         $title = false;
-        foreach( array( '', '_avg', '_min', '_max' ) as $suffix )
+        // these loops are a bit convoluted. They allow the user to specify both generic params
+        // and per-munin-variable params as well
+        $muninvariables = ( $variable == 'pageviews' ? array( '', '_count' ) : array( '', '_tot', '_min', '_max' ) );
+        foreach( $muninvariables as $suffix )
         {
             if ( $ini->hasVariable( 'MuninSettings', 'VariableDescription_' . $variable . $suffix ) )
             {
@@ -94,13 +97,20 @@ switch ( $command )
                     {
                        $title = true;
                     }
+                    if ( $item == 'pageviews.graph' )
+                    {
+                        $pageviews = true;
+                    }
                 }
             }
         }
         if ( !$title )
         {
             echo "graph_title $variable\n";
-
+        }
+        if ( !$pageviews && $variable != 'pageviews' )
+        {
+            echo "pageviews.graph no\n";
         }
         break;
 
@@ -111,7 +121,7 @@ switch ( $command )
             $cli->output( "Error: you are using the ezmuninperflogger_ script as munin plugin. You should create symlinks named ezmuninperflogger_\$varname instead" );
             $script->shutdown( -1 );
         }
-        if ( !in_array( $variable, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) )
+        if ( $variable != 'pageviews' && !in_array( $variable, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) )
         {
             $cli->output( "Error: '$variable' is not a tracked perf. variable" );
             $script->shutdown( -1 );
@@ -120,61 +130,61 @@ switch ( $command )
         $logMethods = $ini->variable( 'GeneralSettings', 'LogMethods' );
         if ( in_array( 'csv', $logMethods ) )
         {
-            $samples = 0;
-            $values = array( 'total' => 0 );
-
-            if ( file_exists( $logfile = $ini->variable( 'csvSettings', 'FileName' ) ) )
+            eZPerfLoggerMemStorage::resetStats();
+            $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $ini->variable( 'csvSettings', 'FileName' ), 'eZPerfLoggerCSVStorage', 'eZPerfLoggerMemStorage', "muninplugin-$variable-csv.log", array( '/^URL$/' ) );
+            if ( $samples = eZPerfLoggerMemStorage::getStatsCount() )
             {
-                $fp = fopen( $logfile, 'r' );
-                if ( $fp )
+                if ( $variable != 'pageviews' )
                 {
-                    $now = time();
-                    $then = $now - $range;
-                    $separator = $ini->variable( 'csvSettings', 'Separator' );
-                    // we count from 1, as 1st element in csv is timestamp
-                    $i = 1;
-                    foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $varname )
-                    {
-                        if ( $varname == $variable )
-                        {
-                            $pos = $i;
-                            break;
-                        }
-                        ++$i;
-                    }
+                    $values = eZPerfLoggerMemStorage::getStats( $variable );
+                    //$values['avg'] = $values['total'] / $samples;
+                    echo "{$variable}_tot.value {$values['total']}\n";
+                    echo "{$variable}_min.value {$values['min']}\n";
+                    echo "{$variable}_max.value {$values['max']}\n";
+                    echo "pageviews.value $samples\n";
+                }
+                else
+                {
+                    echo "pageviews_count.value $samples\n";
+                }
+            }
+            else
+            {
+                if ( $variable != 'pageviews' )
+                {
+                    // Either no logfile or no samples in range
 
-                    while ( ( $buffer = fgets( $fp, 8192 ) ) !== false )
-                    {
-                        $ts = substr( $buffer, 0, strpos( $buffer, $separator ) );
-                        /// @todo !important optimization: do not check ts for lower bound after 1st valid one found
-                        if ( $ts >= $then )
-                        {
-                            if ( $ts > $now )
-                            {
-                                break;
-                            }
-
-                            ++$samples;
-                            $data = explode( $separator, $buffer );
-                            $val = $data[$pos];
-                            if ( !isset( $values['min'] ) || $val < $values['min'] )
-                            {
-                                $values['min'] = $val;
-                            }
-                            if ( !isset( $values['max'] ) || $val > $values['max'] )
-                            {
-                                $values['max'] = $val;
-                            }
-                            /// @todo how to avoid overflows of integer values (eg. bytes per page) when there are many page views?
-                            $values['total'] = $values['total'] + $val;
-                        }
-                    }
-                    fclose( $fp );
+                    // Slight difference between reporting 0 and U (unknown == null):
+                    // . U means no point in the graph
+                    // . 0 will be graphed as 0
+                    // We are not reporting a "per page" values, but "pe interval" ones,
+                    // it thus makes sense to report 0 when there are no pageviews in the interval.
+                    // This subject is probably still subject to debate...
+                    $val = ( $ok ? '0' : 'U' );
+                    echo "{$variable}_tot.value $val\n";
+                    echo "{$variable}_min.value $val\n";
+                    echo "{$variable}_max.value $val\n";
+                    echo "pageviews.value $val\n";
+                }
+                else
+                {
+                    echo "pageviews_count.value " . ( $ok ? '0' : 'U' ) . "\n";
                 }
             }
 
-            if ( $samples )
+        }
+        else if ( in_array( 'logfile', $logMethods ) || in_array( 'apache', 'logmethods' ) )
+        {
+            $cli->output( "Error: can not report variables because ezperflogger set to write data to Apache-formatted log files. Only csv files supported so far" );
+            $script->shutdown( -1 );
+            /// @todo
+            /*
+            $logFile = ...;
+            eZPerfLoggerMemStorage::resetStats();
+            $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFile, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerMemStorage', "muninplugin-$variable-apache.log" );
+            if ( eZPerfLoggerMemStorage::getStatsCount() )
             {
+                $values = eZPerfLoggerMemStorage::getStats( $variable );
                 $values['avg'] = $values['total'] / $samples;
                 echo "{$variable}_avg.value {$values['avg']}\n";
                 echo "{$variable}_min.value {$values['min']}\n";
@@ -187,13 +197,7 @@ switch ( $command )
                 echo "{$variable}_min.value U\n";
                 echo "{$variable}_max.value U\n";
             }
-
-        }
-        else if ( in_array( 'logfile', $logMethods ) || in_array( 'apache', 'logmethods' ) )
-        {
-            /// @todo
-            $cli->output( "Error: can not report variables because ezperflogger set to write data to Apache-formatted log files. Only csv files supported so far" );
-            $script->shutdown( -1 );
+            */
         }
         else
         {

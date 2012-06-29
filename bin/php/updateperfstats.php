@@ -27,14 +27,13 @@ if ( $script->verboseOutputLevel() > 0 )
     $cli->output( "Updating perf counters..."  );
 
 $dt = new eZDateTime();
-$year = $dt->year();
+/*$year = $dt->year();
 $month = date( 'M', time() );
 $day = $dt->day();
 $hour = $dt->hour();
 $minute = $dt->minute();
 $second = $dt->second();
-$startTime = $day . "/" . $month . "/" . $year . ":" . $hour . ":" . $minute . ":" . $second;
-
+$startTime = $day . "/" . $month . "/" . $year . ":" . $hour . ":" . $minute . ":" . $second;*/
 $cli->output( "Started at " . $dt->toString()  );
 
 $contentArray = array();
@@ -54,24 +53,24 @@ else
 {
     $cli->error( "Cannot decide which log-file to open for reading, please enable either apache-based logging or file-based logging." );
     $script->shutdown( 1 );
-    return;
 }
 
 if ( $logFilePath != '' )
 {
     $cli->output( "Parsing file " . $logFilePath  );
 
-    $ok = eZPerfLoggerLogManager::updatePerfStatsFromApacheLog( $logFilePath );
+    $storageClass = $plIni->variable( 'ParsingSettings', 'StorageClass' );
+    $excludeRegexps = $plIni->variable( 'ParsingSettings', 'ExcludeUrls' );
+    $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', $storageClass, 'updateperfstats.log', $excludeRegexps );
     if ( $ok === false )
     {
         $cli->output( "Error parsing file $logFilePath. Please run script in debug mode for more info" );
     }
     else
     {
-        $cli->output( "$ok lines containing data found" );
+        $cli->output( "{$ok['counted']} lines containing data found" );
     }
 }
-
 
 $dt = new eZDateTime();
 $cli->output( "Finished at " . $dt->toString() . "\n"  );

@@ -7,7 +7,6 @@
  * - it also implements methods allowing other code to directly record measured perf data,
  *   to parse perf-data from Apache-formatted log files, and to create Apache-formatted logs
  *
- * @todo log total cluster queries (see code in ezdebug extension)
  * @todo !important separate the logger and provider parts in separate classes
  *
  * @author G. Giunta
@@ -106,7 +105,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
 
     static public function isEnabled()
     {
-        /// @todo look if eZExtension or similar class already has similar code
+        /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
         return in_array( 'ezperformancelogger', eZINI::instance()->variable( 'ExtensionSettings', 'ActiveExtensions' ) );
     }
 

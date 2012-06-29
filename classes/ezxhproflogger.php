@@ -69,7 +69,7 @@ class eZXHProfLogger /*extends XHProfRuns_Default*/
         if ( $runId )
         {
             // beside profiling data, save extra info in another file to make it more useful later
-            file_put_contents( self::$logdir . "/$runId.info", eZPerfLogger::apacheLogLine( 'combined' ) );
+            file_put_contents( self::$logdir . "/$runId.info", eZPerfLoggerApacheLogger::apacheLogLine( 'combined' ) );
             self::$runs[] = $runId;
         }
         return $runId;
@@ -126,7 +126,7 @@ class eZXHProfLogger /*extends XHProfRuns_Default*/
                     );
                     if ( is_file( $infoFile = self::logDir() . "/$run.info" ) )
                     {
-                        if ( is_array( $info = eZPerfLoggerLogManager::parseApacheLogLine( file_get_contents( $infoFile ) ) ) )
+                        if ( is_array( $info = eZPerfLoggerApacheLogger::parseLogLine( file_get_contents( $infoFile ) ) ) )
                         {
                             $runsList[$run] = $info;
                         }
