@@ -61,7 +61,7 @@ if ( $logFilePath != '' )
 {
     $cli->output( "Parsing file " . $logFilePath  );
 
-    $ok = eZPerfLogger::parseLog( $logFilePath );
+    $ok = eZPerfLoggerLogManager::updatePerfStatsFromApacheLog( $logFilePath );
     if ( $ok === false )
     {
         $cli->output( "Error parsing file $logFilePath. Please run script in debug mode for more info" );

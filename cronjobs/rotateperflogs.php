@@ -17,7 +17,7 @@ $ini = eZINI::instance( 'ezperformancelogger.ini' );
 if ( $ini->variable( 'logfileSettings', 'RotateFiles' ) == 'enabled' )
 {
     $logFile = $ini->variable( 'logfileSettings', 'PerfLogFileName' );
-    eZPerfLogger::rotateLogs( dirname( $logFile ), basename( $logFile ),
+    eZPerfLoggerLogManager::rotateLogs( dirname( $logFile ), basename( $logFile ),
         $ini->variable( 'logfileSettings', 'MaxLogSize' ), $ini->variable( 'logfileSettings', 'MaxLogrotateFiles' ) );
 }
 
@@ -25,7 +25,7 @@ if ( $ini->variable( 'logfileSettings', 'RotateFiles' ) == 'enabled' )
 if ( $ini->variable( 'csvSettings', 'RotateFiles' ) == 'enabled' )
 {
     $logFile = $ini->variable( 'csvSettings', 'FileName' );
-    eZPerfLogger::rotateLogs( dirname( $logFile ), basename( $logFile ),
+    eZPerfLoggerLogManager::rotateLogs( dirname( $logFile ), basename( $logFile ),
         $ini->variable( 'logfileSettings', 'MaxLogSize' ), $ini->variable( 'logfileSettings', 'MaxLogrotateFiles' ) );
 }
 

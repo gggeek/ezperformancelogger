@@ -28,7 +28,7 @@ else
 
 if ( $logFilePath != '' )
 {
-    $ok = eZPerfLogger::parseLog( $logFilePath );
+    $ok = eZPerfLoggerLogManager::updatePerfStatsFromApacheLog( $logFilePath );
     if ( $ok === false )
     {
         $cli->output( "Error parsing file $logFilePath. Please run cronjob in debug mode for more info" );

@@ -127,7 +127,7 @@ $info = false;
 $infoFile = eZXHProfLogger::logDir() . "/{$GLOBALS['run']}.info";
 if ( file_exists( $infoFile ) )
 {
-    $info = eZPerfLogger::parseLogLine( file_get_contents( $infoFile ) );
+    $info = eZPerfLoggerLogManager::parseApacheLogLine( file_get_contents( $infoFile ) );
 }
 
 $tpl = eZTemplate::factory();

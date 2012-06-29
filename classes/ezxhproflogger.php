@@ -126,7 +126,7 @@ class eZXHProfLogger /*extends XHProfRuns_Default*/
                     );
                     if ( is_file( $infoFile = self::logDir() . "/$run.info" ) )
                     {
-                        if ( is_array( $info = eZPerfLogger::parseLogLine( file_get_contents( $infoFile ) ) ) )
+                        if ( is_array( $info = eZPerfLoggerLogManager::parseApacheLogLine( file_get_contents( $infoFile ) ) ) )
                         {
                             $runsList[$run] = $info;
                         }
