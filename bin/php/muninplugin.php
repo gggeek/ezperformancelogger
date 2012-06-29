@@ -10,6 +10,7 @@
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo add support for "install" and "uninstall" commands
+ * @todo add support for using apache-formatted log as source for munin
  */
 
 require 'autoload.php';

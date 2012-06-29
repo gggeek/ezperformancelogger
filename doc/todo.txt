@@ -50,3 +50,4 @@ munin:
 . munin multigraph to zoom in on single urls?
 . take care about integer overflow when reporting page size (avg or plain sum)
 . avoid parsing the log file 10 times in a row when there are 10 variables graphed
+. add eZ module/view which displays munin graphs
