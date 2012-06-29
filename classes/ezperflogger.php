@@ -217,6 +217,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         if ( eZDebug::isDebugEnabled() )
         {
             $out['db_queries'] = 'int';
+            $out['accumulators/*'] = 'float (seconds, rounded to 1msec)';
+            $out['accumulators/*/count'] = 'int (number of times operation executed)';
         }
         if ( extension_loaded( 'xhprof' ) )
         {
@@ -233,6 +235,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This method is called to allow this class to provide values for the perf
      * variables it caters to.
      * In this case, it actually gets called by self::filter().
+     * To avoid unnecessary overhead, it cheats a little bit, and it does not provide
+     * values for ALL variables it suppports, but only for the ones it knows will
+     * be logged.
      * @param string $output
      */
     static public function measure( $output )
@@ -248,51 +253,77 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
         $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
 
-        if ( in_array( 'ouput_size', $vars ) )
+        foreach ( $vars as $var )
         {
-            $out['execution_time'] = self::$outputSize;
-        }
-
-        if ( in_array( 'execution_time', $vars ) )
-        {
-            $out['execution_time'] = round( microtime( true ) - $scriptStartTime, 3 );
-        }
-
-        if ( in_array( 'mem_usage', $vars ) )
-        {
-            $out['mem_usage'] = round( memory_get_peak_usage( true ), -3 );
-        }
-
-        if ( in_array( 'db_queries', $vars ) )
-        {
-            // (nb: only works when debug is enabled?)
-            $dbini = eZINI::instance();
-            // we cannot use $db->databasename() because we get the same for mysql and mysqli
-            $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
-            $type .= '_query';
-            // read accumulator
-            $debug = eZDebug::instance();
-            if ( isset( $debug->TimeAccumulatorList[$type] ) )
+            switch( $var )
             {
-                $queries= $debug->TimeAccumulatorList[$type]['count'];
-            }
-            else
-            {
-                 // NB: to tell diffrence between 0 db reqs per page and no debug we could look for ezdebug::isenabled,
-                 // but what if it was enabled at some point and later disabled?...
-                $queries = "0";
-            }
-            $out['db_queries'] = $queries;
-        }
+                case 'ouput_size':
+                    $out[$var] = self::$outputSize;
+                    break;
 
-        if ( in_array( 'xhkprof_runs', $vars ) )
-        {
-            $out['xhkprof_runs'] = implode( ',', eZXHProfLogger::runs() );
-        }
+                case 'execution_time':
+                    $out[$var] = round( microtime( true ) - $scriptStartTime, 3 );
+                    break;
 
-        if ( in_array( 'unique_id', $vars ) )
-        {
-            $out['unique_id'] = $_SERVER['UNIQUE_ID'];
+                case 'mem_usage':
+                    $out[$var] = round( memory_get_peak_usage( true ), -3 );
+                    break;
+
+                case 'db_queries':
+                    // (nb: only works when debug is enabled?)
+                    $dbini = eZINI::instance();
+                    // we cannot use $db->databasename() because we get the same for mysql and mysqli
+                    $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
+                    $type .= '_query';
+                    // read accumulator
+                    $debug = eZDebug::instance();
+                    if ( isset( $debug->TimeAccumulatorList[$type] ) )
+                    {
+                        $queries = $debug->TimeAccumulatorList[$type]['count'];
+                    }
+                    else
+                    {
+                        // NB: to tell difference between 0 db reqs per page and no debug we could look for ezdebug::isenabled,
+                        // but what if it was enabled at some point and later disabled?...
+                        $queries = "0";
+                    }
+                    $out[$var] = $queries;
+                    break;
+
+                case 'xhkprof_runs':
+                    $out[$var] = implode( ',', eZXHProfLogger::runs() );
+                    break;
+
+                case 'unique_id':
+                    $out[$var] = $_SERVER['UNIQUE_ID'];
+                    break;
+
+                default:
+                    // wildcard-based naming:
+
+                    // standard accumulators
+                    if ( strpos( $var, 'accumulators/' ) === 0 )
+                    {
+                        $parts = explode( '/', $var, 3 );
+                        $type = $parts[1];
+                        $debug = eZDebug::instance();
+                        if ( isset( $debug->TimeAccumulatorList[$type] ) )
+                        {
+                            if ( @$parts[2] === 'count' )
+                            {
+                                $out[$var] = $debug->TimeAccumulatorList[$type]['count'];
+                            }
+                            else
+                            {
+                                $out[$var] = round( $debug->TimeAccumulatorList[$type]['time'], 3 );
+                            }
+                        }
+                        else
+                        {
+                            $out[$var] = -1;
+                        }
+                    }
+            }
         }
 
         return $out;

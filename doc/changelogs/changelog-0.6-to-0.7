@@ -3,6 +3,8 @@ changelog from version 0.6 to 0.7 - released 2012.yy.xx
 * New features
 . The BIG new feature of this release: integration with Munin!
   More details in the INSTALL file
+. When DebugOutput is enabled, it is possible to trace any of the existing time
+  accumulators, provided its name is known
 . Added a new method: eZPerfLogger::cleanup, which can be registered as ezexecution cleanup handler, to allow
   perf tracing of those pages which terminate with a redirect / direct exit
 . Added a cronjob and a cli script to archive the perf log files (both apache-style and csv one).
@@ -14,3 +16,4 @@ changelog from version 0.6 to 0.7 - released 2012.yy.xx
 
 * Changes
 . the default logging format if user does not set it has been changed from apache-log to csv
+. the csv log format now has a timestamp as 1st column. This is used to speed up parsing the file (to produce eg. data for Munin)

@@ -9,12 +9,10 @@ perf logging:
   . module/views to display data from db
   . fetch functions to retrieve data when it's in the db
 . more pkis in std logger
-  . cluster queries, ...
-  . allow logging all timing points (by using naming convention)
-  . allow logging all snmp values (by using naming convention) if ezsnmpd is enabled
+  . cluster queries => see dedicated logger class overriding ezdfs one
 . more logging targets
   . allow using a Pinba server as target
-  . allow using snmp traps for as target
+  . allow using snmp traps as target
   . allow to use statsd as target (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
   . yoochoose / odoscope trackers
 
@@ -29,7 +27,7 @@ perf logging:
 . script to wget and measure a whole site
 . add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
 . add some sample filters (eg. log if total time too long or db queries too many or db time too long)
-. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate)
+. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate, site crawling via httrack + graphing with excel, ...)
 . do some basic load testing: pps with no tracing, with tracing on, with debug on
 . get the code triggerable via event system instead of filter system for future-proofing
 
@@ -45,11 +43,12 @@ xhprof:
 . avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches
 
+
 munin:
 . add to php script support for installing the munin plugin on its own
-. munin multigraph to zoom in on single urls?
 . take care about integer overflow when reporting page size (avg or plain sum)
 . avoid parsing the log file 10 times in a row when there are 10 variables graphed
 . improve eZ module/view which displays munin graphs:
    - better vertical sizing of iframe
    - use eZ as reverse proxy (needs better support for custom auth as well)
+. munin multigraph to zoom in on single urls?
