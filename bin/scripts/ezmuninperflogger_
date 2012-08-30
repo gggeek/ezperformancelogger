@@ -70,7 +70,7 @@ fi
 # Support automatic configuration of the plugin:
 # if $1 == "autoconf", test 1st for proper php and ez variables, and if they are,
 # call the php script with autoconf argument
-if [ "$1" == "autoconf" ]; then
+if [ "$1" = "autoconf" ]; then
     if [ ! -x "$PHP" ]; then
       echo "No ('$PHP' is not an executable, need to configure /etc/munin/plugin-conf.d/ezmuninperflogger)"
       exit 0
