@@ -20,7 +20,7 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
     {
         $countersCount = count( $counters );
 
-        if ( !preg_match( '/([0-9.]+) +([^ ]+) +([^ ]+) +\[([^]]+)\] +(.+)/', $line, $matches ) )
+        if ( !preg_match( '/([0-9.a-fA-F:]+) +([^ ]+) +([^ ]+) +\[([^]]+)\] +(.+)/', $line, $matches ) )
         {
             /// @todo log warning
             return false;
