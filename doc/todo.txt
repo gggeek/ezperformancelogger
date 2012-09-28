@@ -27,6 +27,7 @@ perf logging:
 . do some basic load testing: pps with no tracing, with tracing on, with debug on
 . get the code triggerable via event system instead of filter system for future-proofing
 
+. scripts to coalesce csv files with a given time slice (eg. 1 data point every N minutes) to facilitate producing graphs
 . use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...
 
 
@@ -38,7 +39,8 @@ xhprof:
 . add support for picking 2 runs for comparison (in 'list' view)
 . avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches
-
+. avoid fatal error if xhprof is off and startlogging is called
+. show warning iin gui f xhprof is disabled
 
 munin:
 . add to php script support for installing the munin plugin on its own
@@ -48,3 +50,6 @@ munin:
    - better vertical sizing of iframe
    - use eZ as reverse proxy (needs better support for custom auth as well)
 . munin multigraph to zoom in on single urls?
+
+. support other tools: cacti, collectd (see http://collectd.org/documentation/manpages/collectd-exec.5.shtml), dim_stat, mrtg, ganglia, ...
+  see http://dimitrik.free.fr/blog/archives/09-01-2012_09-30-2012.html#149
