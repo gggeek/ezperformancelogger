@@ -23,11 +23,7 @@ class ezPerfLoggerEventListener implements eZPerfLoggerProvider
 
     static protected function recordEvent( $evName )
     {
-file_put_contents( 'd:/temp/x.log', "Record: $evName\n", FILE_APPEND );
         self::$events[$evName]++;
-        //echo "bbb";
-        //var_dump(self::$events);
-        //die('x');
     }
 
     // methods implementing event handlers
@@ -46,10 +42,6 @@ file_put_contents( 'd:/temp/x.log', "Record: $evName\n", FILE_APPEND );
 
     static public function measure( $output )
     {
-        //echo "aaa";
-        //var_dump(self::$events);
-        //die('y');
-file_put_contents( 'd:/temp/x.log', "Measuring...\n", FILE_APPEND );
         return self::$events;
     }
 
