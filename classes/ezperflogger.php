@@ -132,7 +132,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 }
                 else
                 {
-                    eZDebug::writeError( "Perf measuring class $class did not return an array of data", __METHOD__ );
+                    eZDebug::writeError( "Perf measuring class $measuringClass did not return an array of data", __METHOD__ );
                 }
             }
         }
@@ -491,6 +491,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     {
         return self::$timeAccumulatorList;
     }
+
 }
 
 ?>
