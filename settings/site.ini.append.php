@@ -1,11 +1,20 @@
 <?php /*
 
+# This is the main mechanism used by this extension to trace all performance indicators.
+# Do not disable this line.
 [OutputSettings]
 OutputFilterName=eZPerfLogger
 
+# An extra type cache, where we store data of profiling runs.
+# It is only used when integrating with XHProf, not for standard performance tracing
 [Cache_xhprof]
 name=eZPerformanceLogger xhprof traces cache
 path=xhprof
+
+[Event]
+Listeners[]=content/cache@ezPerfLoggerEventListener::recordContentCache
+Listeners[]=image/alias@ezPerfLoggerEventListener::recordImageAlias
+
 
 # WARNING - HERE BE LIONS - WE EAT KITTENS FOR BREAKFAST
 
