@@ -9,7 +9,8 @@ DesignExtensions[]=ezperformancelogger
 # the debug output results will contain a link to see xhprof data of the current page
 
 # eZP 4.3.0 and later
-FrontendJavaScriptList[]=ezjsc::jqueryFrontendJavaScriptList[]=ezxhprof.js
+FrontendJavaScriptList[]=ezjsc::jquery
+FrontendJavaScriptList[]=ezxhprof.js
 # (for admin interface design, we can assume jQuery is already loaded)
 BackendJavaScriptList[]=ezxhprof.js
 
