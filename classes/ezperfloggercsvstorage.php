@@ -13,6 +13,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
 
     /**
      * @see eZPerfLoggerStorage::insertStats
+     * @see http://tools.ietf.org/html/rfc4180
      * @param array $data
      */
     public static function insertStats( array $data )
