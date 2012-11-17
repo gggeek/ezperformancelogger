@@ -55,12 +55,12 @@ For performance logging
 
 5. to log db performances with Debug Output disabled, uncomment the
    appropriate line in settings/site.ini.append.php and use one of the db
-   connectors provided by the extension (currently only for eZP 4.6 on mysqli)
+   connectors provided by the extension (currently only for eZP 4.5 to 4.7 on mysqli)
 
 
 6. to log cluster-db performances with Debug Output disabled, uncomment the
-   appropriate line in settings/file.ini.append.php and use one of the cluster db
-   connectors provided by the extension (currently only for eZP 4.6 on mysqli)
+   appropriate lines in settings/file.ini.append.php and use one of the cluster db
+   connectors provided by the extension (currently only for eZP 4.5 to 4.7 on mysqli)
 
 
 7. to log performance data even on web pages which end prematurely or redirect
