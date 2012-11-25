@@ -40,7 +40,7 @@ xhprof:
 . avoid generating hkprof trace when viewing another trace
 . push to upstream xhprof lib all our patches
 . avoid fatal error if xhprof is off and startlogging is called
-. show warning iin gui f xhprof is disabled
+. show warning in gui if xhprof is disabled
 
 munin:
 . add to php script support for installing the munin plugin on its own

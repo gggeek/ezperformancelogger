@@ -14,23 +14,31 @@ class eZPerfLoggerLogManager
      * @param string $logFilePath
      * @param string $storageClass class used to parse the lines of the log file, must implement interface: eZPerfLoggerStorage
      * @param string $logParserClass class used to parse the parsed, must implement interface: eZPerfLoggerLogParser
-     * @param string $tokenFileName a "token" file, stored in var/<vardir>/log, where we save on every invocation the last parsed line
+     * @param string $tokenFileName a "token" file, stored in var/<vardir>/log, where we save on every invocation the last parsed line. Pass in NULL to always parse the full log
      * @return mixed false|array array with stats of lines parsed, false on error
      */
-    static public function updateStatsFromLogFile( $logFilePath, $logParserClass, $storageClass, $tokenFileName = '', $excludeRegexps = array() )
+    static public function updateStatsFromLogFile( $logFilePath, $logParserClass, $storageClass, $tokenFileName = '', $excludeRegexps = array(), $omitCounters=false )
     {
-        if ( $tokenFileName == '' )
+        if ( $tokenFileName === null )
         {
-            $tokenFileName = basename( $logFilePath ) . '-parsing.log';
-        }
-        $startLine = self::readUpdateToken( $tokenFileName );
-        if ( $startLine )
-        {
-            eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines: $logFilePath", __METHOD__ );
+            $startLine = false;
         }
         else
         {
-            eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
+            if ( $tokenFileName == '' )
+            {
+                $tokenFileName = basename( $logFilePath ) . '-parsing.log';
+            }
+            $startLine = self::readUpdateToken( $tokenFileName );
+
+            if ( $startLine )
+            {
+                eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines: $logFilePath", __METHOD__ );
+            }
+            else
+            {
+                eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
+            }
         }
 
         $contentArray = array();
@@ -50,7 +58,14 @@ class eZPerfLoggerLogManager
             $handle = fopen( $logFilePath, "r" );
             if ( $handle )
             {
-                $noteVars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+                if ( $omitCounters )
+                {
+                    $noteVars = array();
+                }
+                else
+                {
+                    $noteVars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+                }
                 //$noteVarsCount = count( $noteVars );
                 $startParse = ( $startLine === false );
                 $stopParse = false;
@@ -124,7 +139,10 @@ class eZPerfLoggerLogManager
             call_user_func( array( $storageClass, 'insertStats' ), $contentArray );
         }
 
-        self::writeUpdateToken( $tokenFileName, $lastLine );
+        if ( $tokenFileName !== null )
+        {
+            self::writeUpdateToken( $tokenFileName, $lastLine );
+        }
 
         /*eZDebug::writeDebug( 'Empty lines: ' . $empty );
            eZDebug::writeDebug( 'Skipped lines: ' . $skipped );
