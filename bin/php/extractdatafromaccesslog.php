@@ -24,7 +24,7 @@ $script = eZScript::instance( array( 'description' => 'A script used to extract 
                                      'use-extensions' => true ) );
 $script->startup();
 $options = $script->getOptions(
-    '[logfile:][limit:][omit-querystring][omit-viewparams][sort:]',
+    '[logfile:][limit:][omit-querystring][omit-viewparams][sort:][alsostatic][filter:]',
     '',
     array() );
 $script->initialize();
@@ -45,7 +45,7 @@ if ( $logFilePath == '' || $logFilePath == '/' )
     $script->shutdown( 1 );
 }
 
-if ( !is_file( $logFilePath ) || ! is_readable( $logFilePath ) )
+if ( !is_file( $logFilePath ) || !is_readable( $logFilePath ) )
 {
     $cli->error( "Can not parse Apache log file $logFilePath: not a file or not readable" );
     $script->shutdown( 1 );
@@ -58,15 +58,31 @@ $cli->output( "Parsing Apache log file $logFilePath, please be patient..." );
 
 $exclude = array();
 
-$ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerUrlExtractorStorage', null, $exclude, true );
+$ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerUrlExtractorStorage', null, $exclude, $options['alsostatic'] !== null );
 
 $stats = eZPerfLoggerUrlExtractorStorage::getStats();
 
 /// @todo sort urls based on access time / name / frequency
+
+foreach ($stats as $key => $row)
+{
+    $count[$key]  = $row['count'];
+    $url[$key] = $row['url'];
+}
+// Sort the data with volume descending, edition ascending
+// Add $data as the last parameter, to sort by the common key
+array_multisort($count, SORT_DESC, $url, SORT_ASC, $stats);
+
+$i = 0;
 foreach ( $stats as $idx => $data )
 {
     /// @todo allow omitting url frequency
     echo "[{$data['count']}] {$data['url']}\n";
+    $i++;
+    if ( $options['limit'] !== null && $i >= $options['limit'] )
+    {
+        break;
+    }
 }
 
 $script->shutdown();
