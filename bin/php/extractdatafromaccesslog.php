@@ -57,21 +57,40 @@ $cli->output( "Parsing Apache log file $logFilePath, please be patient..." );
 //eZPerfLoggerUrlExtractorStorage::setOptions();
 
 $exclude = array();
+if ( $options['alsostatic'] == null )
+{
+    // remove all known static paths - taken from .htaccess
+    /// @todo we should try to understand if we have to anchor regexp to url root (ie if we are in vhost mode)
+    $exclude[] = '#.*/var/([^/]+/)?storage/images(-versioned)?/.*#';
+    $exclude[] = '#.*/var/([^/]+/)?cache/(texttoimage|public)/.*#';
+    $exclude[] = '#.*/design/[^/]+/(stylesheets|images|javascript)/.*#';
+    $exclude[] = '#.*/share/icons/.*#';
+    $exclude[] = '#.*/extension/[^/]+/design/[^/]+/(stylesheets|flash|images|lib|javascripts?)/.*#';
+    $exclude[] = '#packages/styles/.+/thumbnail/.*#';
+    $exclude[] = '#.*/var/storage/packages/.*#';
+}
 
-$ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerUrlExtractorStorage', null, $exclude, $options['alsostatic'] !== null );
+if ( $options['filter'] !== null )
+{
+    $exclude[] = '#' . str_replace(  '#', '\#', $options['filter'] ) . '#';
+}
+
+$ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerUrlExtractorStorage', null, $exclude, true );
 
 $stats = eZPerfLoggerUrlExtractorStorage::getStats();
 
 /// @todo sort urls based on access time / name / frequency
-
-foreach ($stats as $key => $row)
+if ( $options['sort'] == '' || $options['sort'] == 'frequency' )
 {
-    $count[$key]  = $row['count'];
-    $url[$key] = $row['url'];
+    foreach ($stats as $key => $row)
+    {
+        $count[$key]  = $row['count'];
+        $url[$key] = $row['url'];
+    }
+    // Sort the data with volume descending, edition ascending
+    // Add $data as the last parameter, to sort by the common key
+    array_multisort( $count, SORT_DESC, $url, SORT_ASC, $stats );
 }
-// Sort the data with volume descending, edition ascending
-// Add $data as the last parameter, to sort by the common key
-array_multisort($count, SORT_DESC, $url, SORT_ASC, $stats);
 
 $i = 0;
 foreach ( $stats as $idx => $data )
