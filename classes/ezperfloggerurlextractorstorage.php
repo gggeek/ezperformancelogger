@@ -11,8 +11,8 @@ class eZPerfLoggerUrlExtractorStorage implements eZPerfLoggerStorage
 {
     protected static $urls = array();
     protected static $options = array(
-        'keep_query_string' => true,
-        'keep_view_params' => true,
+        'keep_query_string' => false,
+        'keep_view_params' => false,
     );
 
     /**

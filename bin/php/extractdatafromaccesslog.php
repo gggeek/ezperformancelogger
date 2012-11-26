@@ -2,7 +2,7 @@
 /**
  * A script used to extract urls from Apache access logs.
  *
- * Desired behaviour (not yet implemented)
+ * Desired behaviour (not yet fully implemented)
  * . urls can be sorted by frequency, last/first access time, alphabetically...
  * . url parsing can include/exclude query string
  * . url parsing can include/exclude ez unordered view parameters
@@ -24,7 +24,7 @@ $script = eZScript::instance( array( 'description' => 'A script used to extract 
                                      'use-extensions' => true ) );
 $script->startup();
 $options = $script->getOptions(
-    '[logfile:][limit:][omit-querystring][omit-viewparams][sort:][alsostatic][filter:]',
+    '[logfile:][limit:][sort:][excludefilter:][keep-querystring][keep-viewparams][alsostatic]',
     '',
     array() );
 $script->initialize();
@@ -53,24 +53,33 @@ if ( !is_file( $logFilePath ) || !is_readable( $logFilePath ) )
 
 $cli->output( "Parsing Apache log file $logFilePath, please be patient..." );
 
-/// @todo set options to log parser
-//eZPerfLoggerUrlExtractorStorage::setOptions();
+// set options to log parser
+$opts = array();
+if ( $options['keep-querystring'] !== null )
+{
+    $opts['keep_query_string'] = true;
+}
+if ( $options['keep-viewparams'] !== null )
+{
+    $opts['keep_view_params'] = true;
+}
+eZPerfLoggerUrlExtractorStorage::setOptions( $opts );
 
 $exclude = array();
 if ( $options['alsostatic'] == null )
 {
-    // remove all known static paths - taken from .htaccess
+    // remove all known static paths - list taken from .htaccess
     /// @todo we should try to understand if we have to anchor regexp to url root (ie if we are in vhost mode)
     $exclude[] = '#.*/var/([^/]+/)?storage/images(-versioned)?/.*#';
     $exclude[] = '#.*/var/([^/]+/)?cache/(texttoimage|public)/.*#';
     $exclude[] = '#.*/design/[^/]+/(stylesheets|images|javascript)/.*#';
     $exclude[] = '#.*/share/icons/.*#';
     $exclude[] = '#.*/extension/[^/]+/design/[^/]+/(stylesheets|flash|images|lib|javascripts?)/.*#';
-    $exclude[] = '#packages/styles/.+/thumbnail/.*#';
+    $exclude[] = '#.*/packages/styles/.+/thumbnail/.*#';
     $exclude[] = '#.*/var/storage/packages/.*#';
 }
 
-if ( $options['filter'] !== null )
+if ( $options['excludefilter'] !== null )
 {
     $exclude[] = '#' . str_replace(  '#', '\#', $options['filter'] ) . '#';
 }
@@ -79,7 +88,7 @@ $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLogge
 
 $stats = eZPerfLoggerUrlExtractorStorage::getStats();
 
-/// @todo sort urls based on access time / name / frequency
+/// @todo sort urls based on inverse access time / name / frequency
 if ( $options['sort'] == '' || $options['sort'] == 'frequency' )
 {
     foreach ($stats as $key => $row)
@@ -87,7 +96,6 @@ if ( $options['sort'] == '' || $options['sort'] == 'frequency' )
         $count[$key]  = $row['count'];
         $url[$key] = $row['url'];
     }
-    // Sort the data with volume descending, edition ascending
     // Add $data as the last parameter, to sort by the common key
     array_multisort( $count, SORT_DESC, $url, SORT_ASC, $stats );
 }
