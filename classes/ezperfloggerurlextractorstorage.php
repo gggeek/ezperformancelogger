@@ -32,7 +32,7 @@ class eZPerfLoggerUrlExtractorStorage implements eZPerfLoggerStorage
             // optionally remove query string
             if ( self::$options['keep_query_string'] == false )
             {
-                $url = preg_replace( '/\?.*^/', '', $url );
+                $url = preg_replace( '/\?.*/', '', $url );
             }
             // optionally remove unordered view parameters
             if ( self::$options['keep_view_params'] == false )

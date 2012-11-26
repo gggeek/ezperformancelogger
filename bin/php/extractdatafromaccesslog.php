@@ -81,7 +81,7 @@ if ( $options['alsostatic'] == null )
 
 if ( $options['excludefilter'] !== null )
 {
-    $exclude[] = '#' . str_replace(  '#', '\#', $options['filter'] ) . '#';
+    $exclude[] = '#' . str_replace(  '#', '\#', $options['excludefilter'] ) . '#';
 }
 
 $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLoggerApacheLogger', 'eZPerfLoggerUrlExtractorStorage', null, $exclude, true );
