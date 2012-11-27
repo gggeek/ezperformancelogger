@@ -3,12 +3,13 @@
  * A script used to extract urls from Apache access logs.
  *
  * Desired behaviour (not yet fully implemented)
- * . urls can be sorted by frequency, last/first access time, alphabetically...
- * . url parsing can include/exclude query string
- * . url parsing can include/exclude ez unordered view parameters
+ * . urls can be sorted by frequency, last/first access time, alphabetically...  (currently: only count or access time)
+ * . url parsing can include/exclude query string (default: exclude)
+ * . url parsing can include/exclude ez unordered view parameters (default: exclude)
+ * . urls to list can include/exclude static resources (default: exclude)
  * . urls to list can be filtered by regexp
  * . url list can be limited to "top N"
- * . one of the gathered stats can be listed for each url (min, max, avg)
+ * . one of the gathered stats can be listed for each url (min, max, avg) (currently: only count)
  *
  * @author G. Giunta
  * @copyright (C) G. Giunta 2012
@@ -24,7 +25,7 @@ $script = eZScript::instance( array( 'description' => 'A script used to extract 
                                      'use-extensions' => true ) );
 $script->startup();
 $options = $script->getOptions(
-    '[logfile:][limit:][sort:][excludefilter:][keep-querystring][keep-viewparams][alsostatic]',
+    '[logfile:][limit:][sort:][excludefilter:][data:][keep-querystring][keep-viewparams][alsostatic]',
     '',
     array() );
 $script->initialize();
@@ -89,7 +90,7 @@ $ok = eZPerfLoggerLogManager::updateStatsFromLogFile( $logFilePath, 'eZPerfLogge
 $stats = eZPerfLoggerUrlExtractorStorage::getStats();
 
 /// @todo sort urls based on inverse access time / name / frequency
-if ( $options['sort'] == '' || $options['sort'] == 'frequency' )
+if ( $options['sort'] == '' || $options['sort'] == 'count' )
 {
     foreach ($stats as $key => $row)
     {
@@ -103,8 +104,15 @@ if ( $options['sort'] == '' || $options['sort'] == 'frequency' )
 $i = 0;
 foreach ( $stats as $idx => $data )
 {
-    /// @todo allow omitting url frequency
-    echo "[{$data['count']}] {$data['url']}\n";
+    /// @todo shall we avoid printing empty lines?
+
+    if ( $options['data'] == '' || $options['data'] == 'count' )
+    {
+        echo "[{$data['count']}] ";
+    }
+
+    echo "{$data['url']}\n";
+
     $i++;
     if ( $options['limit'] !== null && $i >= $options['limit'] )
     {
