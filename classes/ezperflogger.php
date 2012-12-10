@@ -103,6 +103,19 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
+    /**
+     * Registered as event handler for response/preoutput
+     * (mandatory since ezp 5.0, as OutputFilter has been removed.
+     */
+    static public function preoutput( $output )
+    {
+        if ( !self::$has_run )
+        {
+            return self::filter( $output );
+        }
+        return $output;
+    }
+
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
@@ -262,6 +275,13 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     break;
 
                 case 'execution_time':
+                    // This global var does not exist anymore in eZP LS 5.0.
+                    // We prefere using it when available as it is slightly more accurate
+                    if ( $scriptStartTime == 0 )
+                    {
+                        $debug = eZDebug::instance();
+                        $scriptStartTime = $debug->ScriptStart;
+                    }
                     $out[$var] = round( microtime( true ) - $scriptStartTime, 3 );
                     break;
 
