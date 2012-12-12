@@ -22,7 +22,7 @@ not in production environments.
 
 Requirements:
 -------------
-. eZP 4.x
+. eZP 4.x or 5.0 (when running the Legacy Stack only)
 . apache webserver recommended
 . optionally: either a piwik or ga account
 . optionally: the xhprof profiler and graphviz

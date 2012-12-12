@@ -7,7 +7,6 @@ perf logging:
 . more pkis in std logger
   . cluster queries => see dedicated logger class overriding ezdfs one
 . more logging targets
-  . allow using a Pinba server as target
   . allow using snmp traps as target
   . allow to use statsd as target (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
   . yoochoose / odoscope trackers

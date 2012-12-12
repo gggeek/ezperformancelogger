@@ -1,15 +1,24 @@
-changelog from version 0.7 to 0.8 - released 2012.x.y
+changelog from version 0.7 to 0.8 - released 2012.12.12
 
 * New features
+
 . allow tracing of events: content/cache (expiry of conten view cache) and image/alias so far.
   For all events, no time is measured, only the number of times they are fired
-. added classes for tracing database and dfs-related data, even when not in debug mode, for eZPublish version 4.5 and 4.7
-  (see points 5 and 6 in INSTALL file for details)
-. added classes for tracing time used by imagemagick, even when not in debug mode, for eZPublish version 4.5 to 4.7
+
+. added classes for tracing database and dfs-related data, even when not in debug mode, for eZPublish version 4.5, 4.7 and 5.0
   (see points 5 and 6 in INSTALL file for details)
 
+. added classes for tracing time used by imagemagick, even when not in debug mode, for eZPublish version 4.5 to 5.0
+  (see points 5 and 6 in INSTALL file for details)
+
+. added an EXPERIMENTAL logger which sends data directly to Pinba (see http://pinba.org)
+
+
 * Bugfixes
+
 . allow IPv6 addresses when parsing apache log
+
 . make extension compatible with eZ Publish 5.0 (when running the Legacy Stack)
+
 
 * Changes
