@@ -1,0 +1,3 @@
+More information available online:
+
+. http://www.slideshare.net/gggeek/ez-performance-measurement - a nice slide set introducing usage of this extension as well as other tools for website performance measurement

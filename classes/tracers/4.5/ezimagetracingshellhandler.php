@@ -241,8 +241,6 @@ class eZImageTracing45ShellHandler extends eZImageShellHandler
                 $measured[$name . '_tmax'] = 0;
             }
         }
-//var_dump( $measured );
-//die('bbb');
         return $measured;
     }
 }
