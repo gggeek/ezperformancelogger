@@ -3,13 +3,13 @@ extension:
 
 version:
     major: 0
-    minor: 7
+    minor: 8
     release: 0
 
 ezp:
     version:
         major: 4
-        minor: 0
+        minor: 5
         release: 0
 
 git:
