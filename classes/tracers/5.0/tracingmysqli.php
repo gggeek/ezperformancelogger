@@ -243,8 +243,8 @@ class eZDFSFileHandlerTracing50MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
             if ( isset( $timeAccumulatorList[$name] ) )
             {
                 $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = $timeAccumulatorList[$name]['time'];
-                $measured[$name . '_tmax'] = $timeAccumulatorList[$name]['maxtime'];
+                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
+                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
             }
             else
             {
