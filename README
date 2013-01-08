@@ -26,7 +26,7 @@ Requirements:
 . apache webserver recommended
 . optionally: either a piwik or ga account
 . optionally: the xhprof profiler and graphviz
-
+. optionally: the Monolog library and its dependencies
 
 How it works: performance logging
 ---------------------------------
@@ -36,6 +36,9 @@ How it works: performance logging
   . total execution time
   . total memory usage
   . number of db queries
+  . all existing accumulators (only when in debug mode)
+  . number of times any existing "event" has fired
+  . database access, cluster db access and imagemagick conversion time (only by usage of special connector classes)
   . custom indicators set by the developer using php code
 
 - the logging of the data can be directed to different media:
@@ -44,6 +47,8 @@ How it works: performance logging
   . the google analytics engine
   . a separate log file (Apache-log format)
   . a separate log file (csv format)
+  . the Monolog logging library
+  . a Pinba server
   and in the future even more.
 
   Logging to the Apache acces log is recommended for a number of reasons: by default
