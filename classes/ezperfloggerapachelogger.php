@@ -1,10 +1,15 @@
 <?php
 /**
- * The class implements methods allowing other code to parse perf-data from Apache-formatted log files, and to create Apache-formatted logs
+ * The class implements methods allowing other code to parse perf-data from
+ * Apache-formatted log files, and to create Apache-formatted logs.
+ * NB: if you are looking for the code used to send perf. events to the Apache log,
+ * it is not implemented here but in the eZPerfLogger class
  *
  * @author G. Giunta
  * @copyright (C) G. Giunta 2012
  * @license Licensed under GNU General Public License v2.0. See file license.txt
+ *
+ * @todo !important rename this class since it does not implement eZPerfLoggerLogger
  */
 class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
 {
