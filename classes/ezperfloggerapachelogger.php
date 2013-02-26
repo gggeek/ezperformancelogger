@@ -6,7 +6,7 @@
  * it is not implemented here but in the eZPerfLogger class
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2012
+ * @copyright (C) G. Giunta 2012-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo !important rename this class since it does not implement eZPerfLoggerLogger
@@ -86,6 +86,8 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
         }
 
         // filter on User Agent
+        // NB: Can only be done when UA is logged, which is not the default
+        // (must use 'combined' format instead of 'common')
         foreach( self::$options['excluded_uas'] as $regexp )
         {
             if ( preg_match( $regexp, $logPartArray[5] ) )
@@ -131,7 +133,7 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
     }
 
     /**
-     * Returns a string corresponding to Apache log format
+     * Returns a string corresponding to Apache log format (for current request)
      */
     static function apacheLogLine( $format = 'common', $size='-', $httpReturn = '200' )
     {
