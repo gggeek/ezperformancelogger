@@ -451,7 +451,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
                 call_user_func( array( $storageClass, 'insertStats' ), array( array(
                     'url' => $_SERVER["REQUEST_URI"],
-                    'ip' => eZSys::clientIP(),
+                    'ip' => is_callable( 'eZSys::clientIP' ) ? eZSys::clientIP() : eZSys::serverVariable( 'REMOTE_ADDR' ), // ezp 4.5 or less
                     'time' => time(),
                     /// @todo
                     'response_status' => "200",
