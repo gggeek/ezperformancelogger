@@ -6,6 +6,8 @@
  * . urls can be sorted by frequency, last/first access time, alphabetically...  (currently: only count or access time)
  * . url parsing can include/exclude query string (default: exclude)
  * . url parsing can include/exclude ez unordered view parameters (default: exclude)
+ * . url parsing can include/exclude ezjscore parameters (default: include) - TODO
+ * . url parsing can include/exclude POST/PUT/HEAD requests (default: include) - TODO
  * . urls to list can include/exclude static resources (default: exclude)
  * . urls to list can be filtered by regexp
  * . url list can be limited to "top N"
@@ -27,7 +29,15 @@ $script->startup();
 $options = $script->getOptions(
     '[logfile:][limit:][sort:][excludefilter:][data:][keep-querystring][keep-viewparams][alsostatic]',
     '',
-    array() );
+    array(
+        'logfile' => 'Name of the log file to parse. If empty, taken from logfile.ini',
+        'limit' => 'Only show the top N urls',
+        'sort' => 'Sort results by: \'count\'',
+        'excludefilter' => 'A regexp used to skip some urls',
+        'keep-querystring' => 'By default query string is removed from URLs',
+        'keep-viewparams' => 'By default eZ unordered view parameters are removed from URLs',
+        'alsostatic' => 'By default URLs pointing to eZ known locations for static content are removed'
+    ) );
 $script->initialize();
 
 if ( $options['logfile'] == '' )
