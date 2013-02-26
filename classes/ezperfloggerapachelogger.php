@@ -14,6 +14,13 @@
 class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
 {
 
+    /// default parsing options
+    static $options = array(
+        'accepted_verbs' => array( 'GET', 'POST', 'PUT', 'HEAD' ), // exclude OPTIONS by default
+        'excluded_uas' => array(), // arary of regexps to exclude user agents
+        'excluded_ips' => array(), // arary of regexps to exclude source IP
+    );
+
     /**
      * Parses a log line, expected to be in Apache "combined+" format:
      * - the line must begin with the combined format
@@ -40,6 +47,15 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
 
         $ip = $matches[1];
 
+        // filter on IP
+        foreach( self::$options['excluded_ips'] as $regexp )
+        {
+            if ( preg_match( $regexp, $ip ) )
+            {
+                return true;
+            }
+        }
+
         $logPartArray = explode( '"', $matches[5] ); //preg_split( "/[\"]+/", $line );
 
         // there is no point in parsing this line further: we miss the perf-data part
@@ -53,9 +69,26 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
         // we will find no protocol part
         list( $requireMethod, $url, $protocol ) = explode( ' ', $logPartArray[1] );
 
+        // filter on HTTP verb
+        /// @todo !important refactor to use isset() for speed
+        if ( !in_array( $requireMethod, self::$options['accepted_verbs'] ) )
+        {
+            return true;
+        }
+
+        // filter on URL
         foreach( $excludeRegexps as $regexp )
         {
             if ( preg_match( $regexp, $url ) )
+            {
+                return true;
+            }
+        }
+
+        // filter on User Agent
+        foreach( self::$options['excluded_uas'] as $regexp )
+        {
+            if ( preg_match( $regexp, $logPartArray[5] ) )
             {
                 return true;
             }
@@ -114,6 +147,10 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
         }
     }
 
+    static public function setOptions( array $opts )
+    {
+
+    }
 }
 
 ?>

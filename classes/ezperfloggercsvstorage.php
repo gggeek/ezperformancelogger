@@ -82,6 +82,15 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
             'response_size' => $logPartArray[$countersCount + 4],
             'counters' => array_slice( $logPartArray, 1, $countersCount ) );
     }
+
+    /**
+     * This one is empty, as we take all options from ini files.
+     *
+     * @todo !important refactor so that we pass thorugh here instead
+     */
+    static public function setOptions( array $opts )
+    {
+    }
 }
 
 ?>

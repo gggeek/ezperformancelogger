@@ -15,9 +15,11 @@ class eZPerfLoggerLogManager
      * @param string $storageClass class used to parse the lines of the log file, must implement interface: eZPerfLoggerStorage
      * @param string $logParserClass class used to parse the parsed, must implement interface: eZPerfLoggerLogParser
      * @param string $tokenFileName a "token" file, stored in var/<vardir>/log, where we save on every invocation the last parsed line. Pass in NULL to always parse the full log
+     * @param bool $omitCounters
+     * @param array $options extra options for initializing the log parser class
      * @return mixed false|array array with stats of lines parsed, false on error
      */
-    static public function updateStatsFromLogFile( $logFilePath, $logParserClass, $storageClass, $tokenFileName = '', $excludeRegexps = array(), $omitCounters=false )
+    static public function updateStatsFromLogFile( $logFilePath, $logParserClass, $storageClass, $tokenFileName = '', $excludeRegexps = array(), $omitCounters=false, $options= array() )
     {
         if ( $tokenFileName === null )
         {
@@ -39,6 +41,13 @@ class eZPerfLoggerLogManager
             {
                 eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
             }
+        }
+
+        // initialize the log parser class with custom options if needed
+        // mmm, DIC where are thou?
+        if ( count( $options ) )
+        {
+            call_user_func( array( $storageClass, 'setOptions' ), $options );
         }
 
         $contentArray = array();

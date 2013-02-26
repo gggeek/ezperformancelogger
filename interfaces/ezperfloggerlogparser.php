@@ -11,6 +11,8 @@
 interface eZPerfLoggerLogParser
 {
     static public function parseLogLine( $line, $counters = array(), $excludeRegexps = array() );
+
+    static public function setOptions( array $opts );
 }
 
 ?>
