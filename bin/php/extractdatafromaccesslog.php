@@ -34,6 +34,7 @@ $options = $script->getOptions(
         'limit' => 'Only show the top N urls',
         'sort' => 'Sort results by: \'count\'',
         'excludefilter' => 'A regexp used to skip some urls',
+        'data' => 'What to print in fornt of urls. Supported: \'none\', \'count\' (default)',
         'keep-querystring' => 'By default query string is removed from URLs',
         'keep-viewparams' => 'By default eZ unordered view parameters are removed from URLs',
         'alsostatic' => 'By default URLs pointing to eZ known locations for static content are removed'
