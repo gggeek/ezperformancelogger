@@ -16,7 +16,7 @@ class eZPerfLoggerMonologLogger implements eZPerfLoggerLogger
         return array( 'monolog' );
     }
 
-    public static function doLog( $logmethod, array $data, &$ouput )
+    public static function doLog( $logmethod, array $data, &$output )
     {
         $log = new Logger( 'ezperflogger' );
 

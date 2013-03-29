@@ -16,7 +16,7 @@ class eZPerfLoggerPinbaLogger extends pinba implements eZPerfLoggerLogger
         return array( 'pinba' );
     }
 
-    public static function doLog( $logmethod, array $data, &$ouput )
+    public static function doLog( $logmethod, array $data, &$output )
     {
         global $scriptStartTime;
 

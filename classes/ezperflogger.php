@@ -200,7 +200,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
                     {
 
-                        call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $toLog, $output ) );
+                        call_user_func_array( array( $loggerClass, 'doLog' ), array( $logMethod, $toLog, &$output ) );
                         $logged = true;
                         break;
                     }
