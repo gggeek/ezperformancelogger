@@ -9,9 +9,10 @@ For performance logging
 
 2. edit ezperformancelogger.ini to decide the data you want to log:
    parameter [GeneralSettings]/TrackVariables
-   See file README for more details avout available data
-   NB: db_queries logging by default only works with ez debug on
-
+   See file README for more details avout available data.
+   Note that depending on the varables you want to log, you might have to alter
+   the [GeneralSettings]/VariableProviders parameter as well.
+   NB: db_queries logging by default only works with ez debug on.
 
 3. edit ezperformancelogger.ini to decide how to log it:
 
@@ -23,15 +24,15 @@ For performance logging
   measure obtained with %D
   Remember to restart Apache after changing its configuration
 
-  b. using piwik or google analytics
+  b. using odoscope, piwik or google analytics
   the perf data is logged directly to the analytics engine database, via usage
   of "custom variables" (ie. we add the perf data to the js call done for visit
-  tracking). For both these tools, you will need to insert in your pagelayout
+  tracking). For all of these tools, you will need to insert in your pagelayout
   template the standard javascript tracking code; the extension will transform
   it as appropriate to add the extra data.
   For ga, only the async tag is supported.
-  NB: data reported via piwik or google analytics will not be accurate if your
-  website is using a caching reverse proxy or cdn. Please use tha apache-log
+  NB: data reported via odoscope, piwik or google analytics will not be accurate
+  if your website is using a caching reverse proxy or cdn. Please use tha apache-log
   configuration in such case.
 
   c. using a separate log file

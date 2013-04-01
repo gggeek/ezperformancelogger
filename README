@@ -49,6 +49,8 @@ How it works: performance logging
   . a separate log file (csv format)
   . the Monolog logging library
   . a Pinba server
+  . an Odoscope server
+  . a Stasd server
   and in the future even more.
 
   Logging to the Apache acces log is recommended for a number of reasons: by default
@@ -78,7 +80,7 @@ Notes:
 - measured script runtime is a bit shorter than reality, as we can not hook at the very beginning and end of php process execution
 - measured time is rounded to milliseconds
 - measured ram usage is rounded to 1000 bytes
-- db queries executed can oby default only be measured when debug ouput is turned on.
+- db queries executed can by default only be measured when debug ouput is turned on.
   We provide an alternative db-connector class, only for eZ 4.6 / mysqli, which can be
   used to measure detailed db information when debug ouput is turned off
   (see files site.ini and ezperformancelogger.ini for details)
@@ -86,7 +88,7 @@ Notes:
   not log data by default. To force even those pages to be measured you will have
   to patch the index.php file and add the following line to it:
       eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
-  a good candidate location is next to the existing eZExecution::addCleanupHandler call
+  A good candidate location is next to the existing eZExecution::addCleanupHandler call
 
 
 

@@ -9,7 +9,7 @@ perf logging:
 . more logging targets
   . allow using snmp traps as target
   . allow to use statsd as target (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
-  . yoochoose / odoscope trackers
+  . yoochoose trackers
 
 . improve existing logging targets
   . allow csv output to use comma instead of dot for float numbers
@@ -23,7 +23,6 @@ perf logging:
 . add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
 . add some sample filters (eg. log if total time too long or db queries too many or db time too long)
 . add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate, site crawling via httrack + graphing with excel, ...)
-. do some basic load testing: pps with no tracing, with tracing on, with debug on
 
 . scripts to coalesce csv files with a given time slice (eg. 1 data point every N minutes) to facilitate producing graphs
 . use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...

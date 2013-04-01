@@ -24,10 +24,11 @@ class eZPerfLoggerOdoscopeLogger implements eZPerfLoggerLogger
     protected static function logByRewrite( array $data, &$output )
     {
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
+        $prefix = $ini->variable( 'OdoscopeSettings', 'VariablePrefix' );
         $text = "";
         foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
         {
-            $text .= "&amp;ezpf_" . urlencode( $var ) . "=" . urlencode( $data[$var] );
+            $text .= "&amp;$prefix" . urlencode( $var ) . "=" . urlencode( $data[$var] );
         }
         $output = preg_replace( '#(images/osc\.gif\?[^"]+)"#', '$1' . $text . '"', $output );
         $output = preg_replace( "#(osc\.img\('[^']+)'\)#", '$1' . $text . "')", $output );
