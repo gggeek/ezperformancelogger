@@ -64,7 +64,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
                     {
                         if ( strlen( $token) && $token[0] == '$' )
                         {
-                            $token = eZPerfLogger::getModuleResultData( substr( $token, 1 ) );
+                            $token = str_replace( '.', '_', eZPerfLogger::getModuleResultData( substr( $token, 1 ) ) );
                         }
                     }
                     $string = implode( '.', $tokens );
