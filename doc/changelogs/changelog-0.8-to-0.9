@@ -2,15 +2,22 @@ changelog from version 0.8 to 0.9 - released 2013.xx.yy
 
 * New features
 
-. can now use Odoscope to log measured KPIs 
+. all data from module_result can be logged (such as content class or node id)
+
+. can now use Odoscope to log measured KPIs
+
 . can now use Monolog to log measured KPIs - this gives us access to a vast set
   of log management infrastruture
+
+. pki names sent to Statsd can now include dynamic data (such as content class or node id) to allow grouping/filtering of data
+
 
 * Bugfixes
 
 . obey eZ config. for tracing client IP when behind a reverse proxy
 . fix bug in pinba logger
 . fix: allow custom loggers to modify page output
+. fix statsd logger
 
 * Changes
 

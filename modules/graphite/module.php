@@ -1,11 +1,11 @@
 <?php
 /**
  * @author Gaetano Giunta
- * @copyright (c) 2009-2013 G. Giunta
+ * @copyright (c) 2013 G. Giunta
  * @license code licensed under the GPL License: see README
  */
 
-$Module = array( 'name' => 'munin' );
+$Module = array( 'name' => 'graphite' );
 
 $ViewList = array();
 
@@ -20,5 +20,6 @@ $ViewList['display'] = array(
 $FunctionList = array(
     'view' => array()
 );
+
 
 ?>

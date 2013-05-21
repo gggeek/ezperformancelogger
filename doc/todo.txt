@@ -6,15 +6,16 @@ perf logging:
   . fetch functions to retrieve data when it's in the db
 . more pkis in std logger
   . cluster queries => see dedicated logger class overriding ezdfs one
+  . allow module_result/* and content_info/* for ezp >= 5.0
 . more logging targets
   . allow using snmp traps as target
-  . allow to use statsd as target (see https://github.com/etsy/statsd/blob/master/examples/php-example.php)
   . yoochoose trackers
 
 . improve existing logging targets
   . allow csv output to use comma instead of dot for float numbers
   . create a custom plugin for piwik to better visualize our data, and possibly store it in dedicated tables
     (see http://openelibrary.org/development/piwik-custom-data-tracking/)
+  . for statsd logger: prepend url parameters to key name; use an (ini) default value instead of null for key name tokens
 . improve php api
   . add new perf. measurement functions: increment/decrement value, measure time?
   . add new perf. measurement functions: flush to log now

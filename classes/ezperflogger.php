@@ -20,6 +20,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     static protected $outputSize = null;
     static protected $has_run = false;
     static protected $timeAccumulatorList = array();
+    static protected $nodeId = null;
 
     /*** Methods available to php code wanting to record perf data without hassles ***/
 
@@ -241,6 +242,11 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             $out['unique_id'] = 'string (unique per-request identifier)';
         }
+        /// @todo also take into account CP version numbers
+        if ( version_compare( '4.7.0', eZPublishSDK::version() ) >= 0 )
+        {
+            $out['content/nodeid'] = 'int';
+        }
         return $out;
     }
 
@@ -318,8 +324,19 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     $out[$var] = $_SERVER['UNIQUE_ID'];
                     break;
 
+                //case 'content/nodeid':
+                //    $out[$var] = self::$nodeId;
+                //    break;
+
                 default:
                     // wildcard-based naming:
+
+                    // content-info things, useful to help group/filter recorded data
+                    if ( strpos( $var, 'content_info/' ) === 0 || strpos( $var, 'module_result/' ) === 0 )
+                    {
+                        $out[$var] = self::getModuleResultData( $var );
+                        break;
+                    }
 
                     // standard accumulators
                     if ( strpos( $var, 'accumulators/' ) === 0 )
@@ -342,11 +359,50 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                         {
                             $out[$var] = -1;
                         }
+                        break;
                     }
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Encapsulates retrieval of module_result data, to make it available globally,
+     * across all eZP versions.
+     *
+     * @param string var name, should start with content_info/ or module_result/
+     * @param mixed $null a value to return if desired data is not present in module_result
+     * @todo make it work ofr ezp 5.0 LS and later
+     */
+    public static function getModuleResultData( $var, $default=null )
+    {
+        // eZ 4: we rely on data set by index.php
+        if ( isset( $GLOBALS['moduleResult'] ) )
+        {
+            $data = $GLOBALS['moduleResult'];
+            if ( strpos( $var, 'content_info/' ) === 0 )
+            {
+                if ( !isset( $data['content_info'] ) )
+                {
+                    // no need to log warnings here, as content_info is not always set
+                    return $default;
+                }
+                $data = $data['content_info'];
+            }
+            $parts = explode( '/', $var, 3 );
+            $value = isset( $data[$parts[1]] ) ? $data[$parts[1]] : $default;
+            if ( is_array( $value ) && isset( $parts[2] ) )
+            {
+                $value = $value[$parts[2]];
+            }
+            return $value;
+        }
+        else
+        {
+            /// @todo log warning if no module result is found (eZ 5.0 and later)
+            return $default;
+        }
     }
 
     /*** Handling the log targets this class can use. These methods should be protected and not used by external code ***/

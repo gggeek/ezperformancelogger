@@ -1,8 +1,6 @@
 <?php
 /**
  * Class used to log data to Statsd.
- * It does not take advantage of odoscope integration capability but does tag
- * rewriting on its own, to be able to also add custom params for the <noscript> tag
  *
  * @author G. Giunta
  * @copyright (C) G. Giunta 2013
@@ -11,6 +9,9 @@
 
 class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
 {
+    static $prefix = null;
+    static $postfix = null;
+
     public static function supportedLogMethods()
     {
         return array( 'statsd' );
@@ -25,24 +26,61 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
         $host = $ini->variable( 'StatsdSettings', 'Host' );
         $port = $ini->variable( 'StatsdSettings', 'Port' );
         $types = $ini->variable( 'StatsdSettings', 'VariableTypes' );
+
         // Failures in any of this should be silently ignored
         try
         {
-            $fp = fsockopen( "udp://$host", $port, $errno, $errstr );
+            $fp = fsockopen( "udp://$host", (int)$port, $errno, $errstr );
             if ( !$fp )
             {
-                eZDebug::writeWarning( "Could not open udp socket to $host:$port", __METHOD__ )
+                eZDebug::writeWarning( "Could not open udp socket to $host:$port", __METHOD__ );
                 return;
             }
-            foreach ( $sampledData as $stat => $value )
+            foreach ( $data as $varname => $value )
             {
-                $type = isset( $types[$var] ) ? $types[$var] : 'ms';
-                fwrite( $fp, "$prefix$var:{$data[$var]}|$type" );
+                $type = isset( $types[$varname] ) ? $types[$varname] : 'ms';
+                fwrite( $fp, static::transformVarName( $varname ) . ":{$value}|$type" );
             }
             fclose( $fp );
         } catch ( Exception $e )
         {
         }
+    }
+
+    /**
+    * We cache internally prefix and postix for optimal performances
+    */
+    public static function transformVarName( $var )
+    {
+        if ( self::$prefix === null || self::$postfix === null )
+        {
+            $ini = eZINI::instance( 'ezperformancelogger.ini' );
+            foreach( array( $ini->variable( 'StatsdSettings', 'VariablePrefix' ), $ini->variable( 'StatsdSettings', 'VariablePostfix' ) ) as $i => $string )
+            {
+                if ( strpos( $string, '$' ) !== false )
+                {
+                    $tokens = explode( '.', $string );
+                    foreach( $tokens as &$token )
+                    {
+                        if ( strlen( $token) && $token[0] == '$' )
+                        {
+                            $token = eZPerfLogger::getModuleResultData( substr( $token, 1 ) );
+                        }
+                    }
+                    $string = implode( '.', $tokens );
+                }
+                if ( $i )
+                {
+                    self::$postfix = $string;
+                }
+                else
+                {
+                    self::$prefix = $string;
+                }
+            }
+        }
+
+        return self::$prefix . $var . self::$postfix;
     }
 }
 
