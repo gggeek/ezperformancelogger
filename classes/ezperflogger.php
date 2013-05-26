@@ -128,6 +128,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @param bool $domeasure If true, will trigger data collection from registered perf-data providers,
      *                        otherwise only data recorded via calls to recordValue(s) will be returned
      * @param string $output page output so far
+     * @return array
      * @too !important split method in 2 methods, with one public and one protected?
      */
     public static function getValues( $domeasure, $output )
@@ -255,9 +256,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * variables it caters to.
      * In this case, it actually gets called by self::filter().
      * To avoid unnecessary overhead, it cheats a little bit, and it does not provide
-     * values for ALL variables it suppports, but only for the ones it knows will
+     * values for ALL variables it supports, but only for the ones it knows will
      * be logged.
      * @param string $output
+     * @return array
      */
     static public function measure( $output )
     {
@@ -371,8 +373,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * Encapsulates retrieval of module_result data, to make it available globally,
      * across all eZP versions.
      *
-     * @param string var name, should start with content_info/ or module_result/
-     * @param mixed $null a value to return if desired data is not present in module_result
+     * @param string $var var name, should start with content_info/ or module_result/
+     * @param mixed $default a value to return if desired data is not present in module_result
+     * @return mixed
      * @todo make it work ofr ezp 5.0 LS and later
      */
     public static function getModuleResultData( $var, $default=null )
@@ -400,7 +403,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
         else
         {
-            /// @todo log warning if no module result is found (eZ 5.0 and later)
+            eZDebug::writeWarning( 'Can not trace module result data, global variable "moduleResult" not found. Are you on eZ 5.0 or later?', __METHOD__ );
             return $default;
         }
     }
@@ -459,7 +462,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 $size = self::$outputSize;
                 if ( $size == 0 )
                     $size = '-';
-                $text = eZPerfLoggerLogManager::apacheLogLine( 'combined', $size, 200 ) . ' ';
+                $text = eZPerfLoggerApacheLogger::apacheLogLine( 'combined', $size, 200 ) . ' ';
                 foreach( $values as $varname => $value )
                 {
                     // do same as apache does: replace nulls with "-"
@@ -500,6 +503,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 }
                 else
                 {
+                    $ini = eZINI::instance( 'ezperformancelogger.ini' );
                     $storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
                 }
 

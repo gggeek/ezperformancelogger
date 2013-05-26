@@ -12,9 +12,10 @@ class eZPerfLoggerLogManager
     /**
      * Parse a log file, retrieve performance values from it and store them in a storage provider
      * @param string $logFilePath
-     * @param string $storageClass class used to parse the lines of the log file, must implement interface: eZPerfLoggerStorage
      * @param string $logParserClass class used to parse the parsed, must implement interface: eZPerfLoggerLogParser
+     * @param string $storageClass class used to parse the lines of the log file, must implement interface: eZPerfLoggerStorage
      * @param string $tokenFileName a "token" file, stored in var/<vardir>/log, where we save on every invocation the last parsed line. Pass in NULL to always parse the full log
+     * @param array $excludeRegexps
      * @param bool $omitCounters
      * @param array $options extra options for initializing the log parser class
      * @return mixed false|array array with stats of lines parsed, false on error
