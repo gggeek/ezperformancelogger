@@ -9,11 +9,11 @@ down your server too much because of the measurements. For the same reason by
 default it does not store performance data into the database, but as part of
 the existing Apache log.
 The amount of performance data measured is fully configurable, as well as the
-mechanism used to record it.
+mechanism used to store it.
 
 It doubles as profiling tool as well, since version 0.4.
 This means having at your fingertips more detailed information that the standard
-debug oputput, complete with drill-down capaibilities and call graphs.
+debug output, complete with drill-down capabilities and call graphs.
 
 Note for the causal reader: profiling means measuring all php function calls
 executed by the web page, and is extremely heavy. It should only be used in development,
@@ -22,7 +22,7 @@ not in production environments.
 
 Requirements:
 -------------
-. eZP >= 4.6 or 5.0 (when running the Legacy Stack only)
+. eZP >= 4.6 or 5.X (when running the Legacy Stack only: legacy_mode must be true in Symfony settings)
 . apache webserver recommended
 . optionally: either a piwik or ga account
 . optionally: the xhprof profiler and graphviz
@@ -39,7 +39,8 @@ How it works: performance logging
   . all existing accumulators (only when in debug mode)
   . number of times any existing "event" has fired
   . database access, cluster db access and imagemagick conversion time (only by usage of special connector classes)
-  . custom indicators set by the developer using php code
+  . custom indicators set by the developer using php code or template code
+  . any data coming from $module_result (for eZ 5.x, this needs a piece of template code to be added to the pagelayout)
 
 - the logging of the data can be directed to different media:
   . the Apache access log
@@ -80,7 +81,7 @@ Notes:
 - measured script runtime is a bit shorter than reality, as we can not hook at the very beginning and end of php process execution
 - measured time is rounded to milliseconds
 - measured ram usage is rounded to 1000 bytes
-- db queries executed can by default only be measured when debug ouput is turned on.
+- db queries executed can by default only be measured when debug output is turned on.
   We provide an alternative db-connector class, only for eZ 4.6 / mysqli, which can be
   used to measure detailed db information when debug ouput is turned off
   (see files site.ini and ezperformancelogger.ini for details)
