@@ -463,7 +463,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 if ( $size == 0 )
                     $size = '-';
                 $text = eZPerfLoggerApacheLogger::apacheLogLine( 'combined', $size, 200 ) . ' ';
-                foreach( $values as $varname => $value )
+                foreach( $values as $value )
                 {
                     // do same as apache does: replace nulls with "-"
                     if ( ((string)$value ) === '' )
