@@ -1,4 +1,4 @@
-changelog from version 0.8 to 0.9 - released 2013.05.28
+changelog from version 0.8 to 0.9 - released 2013.xx.yy
 
 * New features
 
@@ -12,9 +12,15 @@ changelog from version 0.8 to 0.9 - released 2013.05.28
 . can now use Monolog to log measured KPIs - this gives us access to a vast set
   of log management infrastruture
 
-. pki names sent to Statsd can now include dynamic data (such as content class or node id) to allow grouping/filtering of data
+. KPI names sent to Statsd can now include dynamic data (such as content class or node id) to allow grouping/filtering of data
 
 . added custom tracer classes for eZP 5.1 and 4.4
+
+. added 3 filters which allow to log only "problematic" pages, or a part of the whole:
+  - slow executing pages
+  - pages consuming too much memory
+  - a random fraction of all pages
+  see ezperformancelogger.ini for more details
 
 * Bugfixes
 
