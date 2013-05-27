@@ -34,5 +34,6 @@ Listeners[]=response/preoutput@eZPerfLogger::preoutput
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing46DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing47DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing50DB
+#ImplementationAlias[ezmysqli]=eZMySQLiTracing51DB
 
 */ ?>

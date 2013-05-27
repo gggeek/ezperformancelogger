@@ -12,5 +12,6 @@
 #Handler=eZImageTracing46ShellFactory
 #Handler=eZImageTracing47ShellFactory
 #Handler=eZImageTracing50ShellFactory
+#Handler=eZImageTracing51ShellFactory
 
 */ ?>

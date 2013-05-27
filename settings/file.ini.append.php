@@ -14,11 +14,13 @@
 #FileHandler=eZDFSTracing46FileHandler
 #FileHandler=eZDFSTracing47FileHandler
 #FileHandler=eZDFSTracing50FileHandler
+#FileHandler=eZDFSTracing51FileHandler
 
 [eZDFSClusteringSettings]
 #DBBackend=eZDFSFileHandlerTracing45MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing46MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing47MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing50MySQLiBackend
+#DBBackend=eZDFSFileHandlerTracing51MySQLiBackend
 
 */?>
