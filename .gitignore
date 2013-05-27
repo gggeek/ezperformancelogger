@@ -1,5 +1,7 @@
 *.PHPEditProject
 *.bak
+*.ongoing
+*.orig
 var
 build
 dist
