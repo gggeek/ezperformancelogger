@@ -1,5 +1,8 @@
 <?php /*
 
+[TemplateSettings]
+ExtensionAutoloadPath[]=ezperformancelogger
+
 # This is the main mechanism used by this extension to trace all performance indicators.
 # Do not disable this line.
 [OutputSettings]
