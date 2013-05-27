@@ -14,7 +14,7 @@
  * . one of the gathered stats can be listed for each url (min, max, avg) (currently: only count)
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2012
+ * @copyright (C) G. Giunta 2012-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 

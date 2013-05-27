@@ -10,7 +10,7 @@
  * @todo !important separate the logger and provider parts in separate classes
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2008-2012
+ * @copyright (C) G. Giunta 2008-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
