@@ -33,6 +33,12 @@ class eZPerformanceLoggerOperators {
                  'required' => true
              )
          ),
+         'make_global' => array(
+             'name' => array(
+                 'type' => 'string',
+                 'required' => true
+             )
+         )
      );
 
     /**
@@ -79,6 +85,10 @@ class eZPerformanceLoggerOperators {
             case 'record_value':
                 eZPerfLogger::recordValue( $namedParameters['name'], $operatorValue );
                 $operatorValue = null;
+                break;
+            case 'make_global':
+                /// @todo investigate: shal we use copy if $operatorValue is an object?
+                $GLOBALS[$namedParameters['name']] = $operatorValue;
         }
     }
 
