@@ -42,6 +42,25 @@ For performance logging
   using the same format as Apache "extended" log, with perf counters data at the
   end of the line, or in csv format
 
+  d. using statsd and graphite
+  this is useful if you have a lot of traffic, and want to be able to see nice
+  graphs, with drill-down / group / filter capability.
+  Steps are:
+  a. set up a graphite+statsd server
+  b. set up ezperformancelogger.ini
+  c. if using ezp >= 5, add a specific template tag in your pagelayout (see provided
+     tpl in the design/admin folder in this extension)
+  The main difference between graphite and other KPI graphing tools is the extensive
+  support for grouping data. To get most value out of it, the extension "rewrites" the
+  names of the measured KPIs when sending them to statsd, injecting by default the
+  content-class name and node-id. This way the graphite user could drill down, to see
+  f.e. the avg page-load-time across the whole site, then across all pages displaying
+  articles, then only for the article with node-id 635.
+  The way KPI names are rewritten for graphite can also be configured via ini settings.
+
+  e. using monolog, syslog etc...
+  read comments in ezperformancelogger.ini to find out more details about those
+
 
 4. once logging of data is active, we recommend using a tool like httrack or
    wget to scan your complete website and get an overview of the performance
@@ -87,6 +106,12 @@ For graphing performance indicators with Munin
    Detailed instructions for this step you will find in the file
 
    bin/scripts/ezmuninperflogger_
+
+
+For graphing performance indicators with Graphite
+-------------------------------------------------
+
+See point 3.d above
 
 
 For profiling
