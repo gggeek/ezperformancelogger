@@ -89,6 +89,12 @@ For performance logging
    a good candidate location is next to the existing eZExecution::addCleanupHandler call
 
 
+8. you can also decide not to log data for every single request received, but only for
+   some of them. To this end, use the LogFilters option in ezperformancelogger.ini.
+   Filters provided within the extension allow to log slow pages, memory-hunry pages,
+   or a random subset of all pages.
+
+
 For graphing performance indicators with Munin
 ----------------------------------------------
 
