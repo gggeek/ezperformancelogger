@@ -168,7 +168,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
         $filters = $ini->variable( 'GeneralSettings', 'LogFilters' );
         // cater to 'array reset' situations: only 1 empty val in the array
-        if ( count( $filters ) > 2 || ( count( $filters ) == 1 && $filters[0] != '' ) )
+        if ( count( $filters ) > 1 || ( count( $filters ) == 1 && $filters[0] != '' ) )
         {
             $skip = true;
             foreach( $filters as $filterClass )
