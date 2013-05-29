@@ -55,6 +55,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
         if ( self::$prefix === null || self::$postfix === null )
         {
             $ini = eZINI::instance( 'ezperformancelogger.ini' );
+            $default = $ini->variable( 'StatsdSettings', 'EmptyVariableDefault' );
             foreach( array( $ini->variable( 'StatsdSettings', 'VariablePrefix' ), $ini->variable( 'StatsdSettings', 'VariablePostfix' ) ) as $i => $string )
             {
                 if ( strpos( $string, '$' ) !== false )
@@ -64,7 +65,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
                     {
                         if ( strlen( $token) && $token[0] == '$' )
                         {
-                            $token = str_replace( '.', '_', eZPerfLogger::getModuleResultData( substr( $token, 1 ) ) );
+                            $token = str_replace( '.', '_', eZPerfLogger::getModuleData( substr( $token, 1 ), $default ) );
                         }
                     }
                     $string = implode( '.', $tokens );
@@ -79,7 +80,6 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
                 }
             }
         }
-
         return self::$prefix . $var . self::$postfix;
     }
 }

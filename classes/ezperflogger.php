@@ -373,14 +373,32 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * Encapsulates retrieval of module_result data, to make it available globally,
      * across all eZP versions.
      *
-     * @param string $var var name, should start with content_info/ or module_result/
+     * @param string $var var name, should start with content_info/, module_result/ or module_params/
      * @param mixed $default a value to return if desired data is not present in module_result
      * @return mixed
-     * @todo make it work ofr ezp 5.0 LS and later
+     */
+    public static function getModuleData( $var, $default=null )
+    {
+        if ( strpos( $var, 'module_params/' ) === 0 )
+        {
+            return self::getModuleParamsData( $var, $default );
+        }
+        else  if ( strpos( $var, 'content_info/' ) === 0 || strpos( $var, 'module_result/' ) === 0 )
+        {
+            return self::getModuleResultData( $var, $default );
+        }
+        else
+        {
+            eZDebug::writeWarning( "Can not recover module result variable $var", __METHOD__ );
+            return $default;
+        }
+    }
+
+    /**
+     * eZ 4 only: we rely on data set by index.php
      */
     public static function getModuleResultData( $var, $default=null )
     {
-        // eZ 4: we rely on data set by index.php
         if ( isset( $GLOBALS['moduleResult'] ) )
         {
             $data = $GLOBALS['moduleResult'];
@@ -403,7 +421,28 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
         else
         {
-            eZDebug::writeWarning( 'Can not trace module result data, global variable "moduleResult" not found. Are you on eZ 5.0 or later?', __METHOD__ );
+            eZDebug::writeWarning( 'Can not recover module result data, global variable "moduleResult" not found. Are you on eZ 5.0 or later?', __METHOD__ );
+            return $default;
+        }
+    }
+
+    public static function getModuleParamsData( $var, $default=null )
+    {
+        // q: is here any chance this is not set?
+        if ( isset( $GLOBALS['eZRequestedModuleParams'] ) )
+        {
+            $data = $GLOBALS['eZRequestedModuleParams'];
+            $parts = explode( '/', $var, 3 );
+            $value = isset( $data[$parts[1]] ) ? $data[$parts[1]] : $default;
+            if ( is_array( $value ) && isset( $parts[2] ) )
+            {
+                $value = $value[$parts[2]];
+            }
+            return $value;
+        }
+        else
+        {
+            eZDebug::writeWarning( 'Can not trace module params data, global variable "eZRequestedModuleParams" not found. Are you on eZ 5.0 or later?', __METHOD__ );
             return $default;
         }
     }
