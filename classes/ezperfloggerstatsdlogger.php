@@ -55,18 +55,22 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
         if ( self::$prefix === null || self::$postfix === null )
         {
             $ini = eZINI::instance( 'ezperformancelogger.ini' );
-            $default = $ini->variable( 'StatsdSettings', 'EmptyVariableDefault' );
+            $strip = ( $ini->variable( 'StatsdSettings', 'RemoveEmptyTokensInVariable' ) == enabled );
             foreach( array( $ini->variable( 'StatsdSettings', 'VariablePrefix' ), $ini->variable( 'StatsdSettings', 'VariablePostfix' ) ) as $i => $string )
             {
                 if ( strpos( $string, '$' ) !== false )
                 {
                     $tokens = explode( '.', $string );
-                    foreach( $tokens as &$token )
+                    foreach( $tokens as $i => &$token )
                     {
                         if ( strlen( $token) && $token[0] == '$' )
                         {
                             $token = str_replace( '.', '_', eZPerfLogger::getModuleData( substr( $token, 1 ), $default ) );
                         }
+                    }
+                    if ( $strip && $token == '' )
+                    {
+                        unset( $tokens[$i] );
                     }
                     $string = implode( '.', $tokens );
                 }
