@@ -1,3 +1,4 @@
 More information available online:
 
 . http://www.slideshare.net/gggeek/ez-performance-measurement - a nice slide set introducing usage of this extension as well as other tools for website performance measurement
+. http://www.slideshare.net/gggeek/ezperformancelogger-graphite - introducing usage of this extension in conjunction with Graphite/Statsd

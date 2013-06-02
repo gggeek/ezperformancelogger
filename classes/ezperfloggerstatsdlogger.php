@@ -31,16 +31,29 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
         // Failures in any of this should be silently ignored
         try
         {
+            $strings = array();
+            foreach ( $data as $varName => $value )
+            {
+                $type = ( isset( $types[$varName] ) && $types[$varName] != '' ) ? $types[$varName] : 'ms';
+                $strings[] = static::transformVarName( $varName ) . ":{$value}|$type";
+            }
+
             $fp = fsockopen( "udp://$host", (int)$port, $errNo, $errStr );
             if ( !$fp )
             {
                 eZDebug::writeWarning( "Could not open udp socket to $host:$port - $errStr", __METHOD__ );
                 return;
             }
-            foreach ( $data as $varName => $value )
+            if ( $ini->variable( 'StatsdSettings', 'SendMetricsInSinglePacket' ) == 'enabled' )
             {
-                $type = ( isset( $types[$varName] ) && $types[$varName] != '' ) ? $types[$varName] : 'ms';
-                fwrite( $fp, static::transformVarName( $varName ) . ":{$value}|$type" );
+                fwrite( $fp, implode( "\n", $strings ) );
+            }
+            else
+            {
+                foreach ( $strings as $string )
+                {
+                    fwrite( $fp, $string );
+                }
             }
             fclose( $fp );
         } catch ( Exception $e )
