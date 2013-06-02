@@ -18,8 +18,9 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
     }
 
     /**
-    * Code inspired by https://github.com/etsy/statsd/blob/master/examples/php-example.php
-    */
+     * Code inspired by https://github.com/etsy/statsd/blob/master/examples/php-example.php
+     * @todo implement writing via single udp-packet, if enabled in ini file (use \n to coalesce metrics)
+     */
     public static function doLog( $logMethod, array $data, &$output )
     {
         $ini = eZINI::instance( 'ezperformancelogger.ini' );
@@ -38,7 +39,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
             }
             foreach ( $data as $varName => $value )
             {
-                $type = isset( $types[$varName] ) ? $types[$varName] : 'ms';
+                $type = ( isset( $types[$varName] ) && $types[$varName] != '' ) ? $types[$varName] : 'ms';
                 fwrite( $fp, static::transformVarName( $varName ) . ":{$value}|$type" );
             }
             fclose( $fp );
