@@ -599,6 +599,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             self::$timeAccumulatorList[$val]['count'] = self::$timeAccumulatorList[$val]['count'] + 1;
         }
         $thisTime = $stopTime - self::$timeAccumulatorList[$val]['temp_time'];
+        unset( self::$timeAccumulatorList[$val]['temp_time'] );
         self::$timeAccumulatorList[$val]['time'] = $thisTime + self::$timeAccumulatorList[$val]['time'];
         if ( $thisTime > self::$timeAccumulatorList[$val]['maxtime'] )
         {
