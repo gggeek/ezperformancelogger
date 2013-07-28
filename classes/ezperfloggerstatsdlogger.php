@@ -19,7 +19,6 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
 
     /**
      * Code inspired by https://github.com/etsy/statsd/blob/master/examples/php-example.php
-     * @todo implement writing via single udp-packet, if enabled in ini file (use \n to coalesce metrics)
      */
     public static function doLog( $logMethod, array $data, &$output )
     {
@@ -62,8 +61,15 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
     }
 
     /**
-    * We cache internally prefix and postfix for optimal performances
-    */
+     * For statsd, we use a different logic than for other loggers:
+     * in the name of the KPI we embed some variable data, such as f.e.
+     * content-class name. This allows better grouping and filtering of data
+     * in the Graphite console.
+     *
+     * @see ezperformancelogger.ini
+     *
+     * We cache internally prefix and postfix for optimal performances
+     */
     public static function transformVarName( $var, $default=null )
     {
         if ( self::$prefix === null || self::$postfix === null )
@@ -77,7 +83,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
                     $tokens = explode( '.', $string );
                     foreach( $tokens as $j => &$token )
                     {
-                        if ( strlen( $token) && $token[0] == '$' )
+                        if ( strlen( $token ) && $token[0] == '$' )
                         {
                             $token = str_replace( '.', '_', eZPerfLogger::getModuleData( substr( $token, 1 ), $default ) );
                             if ( $strip && $token == '' )
