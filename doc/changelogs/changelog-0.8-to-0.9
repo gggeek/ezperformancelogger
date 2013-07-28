@@ -3,8 +3,8 @@ changelog from version 0.8 to 0.9 - released 2013.5.28
 * New features
 
 . all data from module_result can be logged (such as content class or node id)
-  - this does not work in eZP 5 and later, unless legacy_mode is enabled
-  - when in eZP 5 and later, using legacy_mode, you need to add to your pagelayout template the following snippet:
+  - this does not work in eZP 5 and later, unless a legacy pagelayout is used
+  - when in eZP 5 and later, you need to add to your legacy pagelayout template the following snippet:
     {$module_result|make_global('moduleResult')}
 
 . can now use Odoscope to log measured KPIs

@@ -4,12 +4,12 @@ perf logging:
   . import parsed data to db (and aggregate it to a data-cube)
   . module/views to display data from db
   . fetch functions to retrieve data when it's in the db
-. more pkis in std logger
+. more kpis in std logger
   . cluster queries => see dedicated logger class overriding ezdfs one
   . allow module_result/* and content_info/* for ezp >= 5.0
 . more logging targets
   . allow using snmp traps as target
-  . yoochoose trackers
+  . yoochoose trackers?
 
 . improve existing logging targets
   . allow csv output to use comma instead of dot for float numbers
@@ -22,7 +22,6 @@ perf logging:
 
 . script to wget and measure a whole site
 . add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
-. add some sample filters (eg. log if total time too long or db queries too many or db time too long)
 . add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate, site crawling via httrack + graphing with excel, ...)
 
 . scripts to coalesce csv files with a given time slice (eg. 1 data point every N minutes) to facilitate producing graphs
@@ -39,6 +38,8 @@ xhprof:
 . push to upstream xhprof lib all our patches
 . avoid fatal error if xhprof is off and startlogging is called
 . show warning in gui if xhprof is disabled
+. include xhprof.io / rewrite GUI on top of it
+
 
 munin:
 . add to php script support for installing the munin plugin on its own
@@ -49,5 +50,6 @@ munin:
    - use eZ as reverse proxy (needs better support for custom auth as well)
 . munin multigraph to zoom in on single urls?
 
-. support other tools: cacti, collectd (see http://collectd.org/documentation/manpages/collectd-exec.5.shtml), dim_stat, mrtg, graphite, statsd, ganglia, ...
+
+. support other tools: cacti, collectd (see http://collectd.org/documentation/manpages/collectd-exec.5.shtml), dim_stat, mrtg, ganglia, ...
   see http://dimitrik.free.fr/blog/archives/09-01-2012_09-30-2012.html#149

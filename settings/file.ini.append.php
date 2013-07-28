@@ -2,7 +2,7 @@
 
 # WARNING - HERE BE LIONS - WE EAT KITTENS FOR BREAKFAST
 
-# We can we use a set of "tracing" cluster file handlers to get PKIs related to
+# We can we use a set of "tracing" cluster file handlers to get KPIs related to
 # cluster database activity, even when DebugOutput is disabled.
 # Uncomment two of the following lines for that, according to your version of
 # eZ Publish

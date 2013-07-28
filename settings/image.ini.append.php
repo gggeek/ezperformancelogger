@@ -1,6 +1,6 @@
 <?php /*
 
-# We can we use a set of "tracing" image handlers to get PKIs related to
+# We can we use a set of "tracing" image handlers to get KPIs related to
 # image conversion activity, even when DebugOutput is disabled.
 # Uncomment one of the following lines for that, according to your version of
 # eZ Publish.
