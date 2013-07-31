@@ -1,4 +1,11 @@
 perf logging:
+. find a way to better trace data when running in 5.xLS:
+  . current data is lower than expected, as we do not measure code run outside LS
+  . to trace data in pages resulting in redirects, adding a call from ezexecution::cleanexit()
+    to the extension is not good anymore, as ezexecution::cleanexit() can now
+    be called multiple times in a single page
+  . check usage of ezpkernelweb->redirect()
+
 . self-contained db logging
   . direct-to-db logging
   . import parsed data to db (and aggregate it to a data-cube)

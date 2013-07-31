@@ -9,8 +9,8 @@ For performance logging
 
 2. edit ezperformancelogger.ini to decide the data you want to log:
    parameter [GeneralSettings]/TrackVariables
-   See file README for more details avout available data.
-   Note that depending on the varables you want to log, you might have to alter
+   See file README for more details about available data.
+   Note that depending on the variables you want to log, you might have to alter
    the [GeneralSettings]/VariableProviders parameter as well.
    NB: db_queries logging by default only works with ez debug on.
 
@@ -86,12 +86,16 @@ For performance logging
 7. to log performance data even on web pages which end prematurely or redirect
    you need to patch the index.php file and add somewhere the following line:
       eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
-   a good candidate location is next to the existing eZExecution::addCleanupHandler call
+   a good candidate location is next to the existing eZExecution::addCleanupHandler call.
+   For eZPublish 5.x, patch ezpkernelweb.php instead of index.php;
+  please note that in this case the measured data can be lower than expected,
+  you should also patch ezpkernelweb::runCallback() to avoid measuring data
+  via calls to eZPerfLogger::disable() and reenable()
 
 
 8. you can also decide not to log data for every single request received, but only for
    some of them. To this end, use the LogFilters option in ezperformancelogger.ini.
-   Filters provided within the extension allow to log slow pages, memory-hunry pages,
+   Filters provided within the extension allow to log slow pages, memory-hungry pages,
    or a random subset of all pages.
 
 

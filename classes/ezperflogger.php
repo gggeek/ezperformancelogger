@@ -117,6 +117,26 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         return $output;
     }
 
+    /**
+     * Courtesy method to allow callers to go through
+     * cleanup() calls many times; needed for eZP 5.x and proper
+     * tracing of redirecting pages
+     */
+    static public function disable()
+    {
+        self::$has_run = true;
+    }
+
+    /**
+     * Courtesy method to allow callers to go through
+     * cleanup() calls many times; needed for eZP 5.x and proper
+     * tracing of redirecting pages
+     */
+    static public function reenable()
+    {
+        self::$has_run = false;
+    }
+
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
