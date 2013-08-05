@@ -45,12 +45,14 @@ class eZDFSFileHandlerTracing50MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
 
         $maxTries = parent::$dbparams['max_connect_tries'];
         $tries = 0;
+        eZPerfLogger::accumulatorStart( 'mysql_cluster_connect', 'MySQL Cluster', 'Cluster database connection' );
         while ( $tries < $maxTries )
         {
             if ( $this->db = mysqli_connect( parent::$dbparams['host'], parent::$dbparams['user'], parent::$dbparams['pass'], parent::$dbparams['dbname'], parent::$dbparams['port'] ) )
                 break;
             ++$tries;
         }
+        eZPerfLogger::accumulatorStop( 'mysql_cluster_connect' );
         if ( !$this->db )
             throw new eZClusterHandlerDBNoConnectionException( $serverString, parent::$dbparams['user'], parent::$dbparams['pass'] );
 
@@ -238,7 +240,7 @@ class eZDFSFileHandlerTracing50MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
 
         $measured = array();
-        foreach( array( 'mysql_cluster_query', 'mysql_cluster_dfs_operations', 'mysql_cluster_cache_waits' ) as $name )
+        foreach( array( 'mysql_cluster_query', 'mysql_cluster_connect' ) as $name )
         {
             if ( isset( $timeAccumulatorList[$name] ) )
             {

@@ -3,7 +3,7 @@
  * Modified db connection class that traces execution times even with debug off
  */
 
-class eZOracleTracingDB extends eZOracleDB
+class eZOracleTracing50DB extends eZOracleDB
 {
     /**
      * Creates a new eZOracleDB object and connects to the database.
@@ -180,9 +180,9 @@ class eZOracleTracingDB extends eZOracleDB
                     {
                         for ( $i = 0; $i < $numRows; ++$i )
                         {
-                            foreach( $row[$i] as $key => $data )
+                            foreach( $rows[$i] as $key => $data )
                             {
-                                $row[$i][$key] = $this->OutputTextCodec->convertString( $data );
+                                $rows[$i][$key] = $this->OutputTextCodec->convertString( $data );
                             }
                         }
                     }
