@@ -8,7 +8,7 @@ class eZOracleTracing50DB extends eZOracleDB
     /**
      * Creates a new eZOracleDB object and connects to the database.
      */
-    function eZOracleDB( $parameters )
+    function eZOracleTracing50DB( $parameters )
     {
         $this->eZDBInterface( $parameters );
 
