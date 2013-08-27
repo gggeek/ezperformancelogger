@@ -60,7 +60,7 @@ class eZDFSFileHandlerTracing51MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
         // DFS setup
         if ( $this->dfsbackend === null )
         {
-            $this->dfsbackend = new eZDFSFileHandlerTracing46DFSBackend();
+            $this->dfsbackend = new eZDFSFileHandlerTracing47DFSBackend();
         }
 
         $charset = trim( $siteINI->variable( 'DatabaseSettings', 'Charset' ) );

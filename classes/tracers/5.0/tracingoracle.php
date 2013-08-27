@@ -68,7 +68,7 @@ class eZDFSFileHandlerTracing50OracleBackend extends eZDFSFileHandlerOracleBacke
         // DFS setup
         if ( $this->dfsbackend === null )
         {
-            $this->dfsbackend = new eZDFSFileHandlerDFSBackend();
+            $this->dfsbackend = new eZDFSFileHandlerTracing50DFSBackend();
         }
     }
 
