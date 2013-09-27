@@ -28,9 +28,11 @@ class ezPerfLoggerEventListener implements eZPerfLoggerProvider
 
     // methods implementing event handlers
 
-    static public function recordContentCache()
+    static public function recordContentCache( $argument = null )
     {
         self::recordEvent( 'events/content/cache' );
+
+        return $argument;
     }
 
     static public function recordImageAlias()
