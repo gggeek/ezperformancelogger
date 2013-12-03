@@ -22,14 +22,13 @@ class eZPerfLoggerMonologLogger implements eZPerfLoggerLogger
 
         // constructor args for the specific handler can be set via ini
         /// @todo how to create resources instead?
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        foreach( $ini->variable( 'MonologSettings', 'LogHandlers' ) as $handlerName )
+        foreach( eZPerfLoggerINI::variable( 'MonologSettings', 'LogHandlers' ) as $handlerName )
         {
             $handlerClass = 'Monolog\Handler\\' . $handlerName . "Handler";
-            if ( $ini->hasVariable( 'MonologSettings', 'LogHandler_' . $handlerName ) )
+            if ( eZPerfLoggerINI::hasVariable( 'MonologSettings', 'LogHandler_' . $handlerName ) )
             {
                 $r = new ReflectionClass( $handlerClass );
-                $handler = $r->newInstanceArgs( $ini->variable( 'MonologSettings', 'LogHandler_' . $handlerName ) );
+                $handler = $r->newInstanceArgs( eZPerfLoggerINI::variable( 'MonologSettings', 'LogHandler_' . $handlerName ) );
             }
             else
             {
@@ -39,9 +38,9 @@ class eZPerfLoggerMonologLogger implements eZPerfLoggerLogger
         }
 
         // the default severity level: taken from config file
-        $level =  (int)$ini->variable( 'MonologSettings', 'SeverityLevel' );
+        $level =  (int)eZPerfLoggerINI::variable( 'MonologSettings', 'SeverityLevel' );
         // either coalesce messages or not: taken from config file
-        if ( $ini->variable( 'MonologSettings', 'Coalescevariables' ) == 'enabled' )
+        if ( eZPerfLoggerINI::variable( 'MonologSettings', 'Coalescevariables' ) == 'enabled' )
         {
             /// @todo allow via ini file the specification of custom formatters?
             $msg = array();

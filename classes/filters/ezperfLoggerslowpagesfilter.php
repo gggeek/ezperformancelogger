@@ -8,8 +8,7 @@ class eZPerfLoggerSlowpagesFilter implements eZPerfLoggerFilter
 {
     public static function shouldLog( array $data, $output )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        if ( !isset( $data['execution_time'] ) || $data['execution_time'] >= $ini->variable( 'LogFilterSettings', 'SlowpagesFilterLimit' ) )
+        if ( !isset( $data['execution_time'] ) || $data['execution_time'] >= eZPerfLoggerINI::variable( 'LogFilterSettings', 'SlowpagesFilterLimit' ) )
         {
             return true;
         }

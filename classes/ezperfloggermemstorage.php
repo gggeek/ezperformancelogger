@@ -19,8 +19,7 @@ class eZPerfLoggerMemStorage implements eZPerfLoggerStorage
      */
     public static function insertStats( array $data )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $vars = array_values( $ini->variable( 'GeneralSettings', 'TrackVariables' ) );
+        $vars = array_values( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) );
         foreach( $data as $datapoint )
         {
             foreach( $datapoint['counters'] as $i => $value )
@@ -54,8 +53,7 @@ class eZPerfLoggerMemStorage implements eZPerfLoggerStorage
     {
         self::$statsCount = 0;
         self::$stats = array();
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $var )
+        foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $var )
         {
             self::$stats[$var] = array( 'total' => 0 );
         }

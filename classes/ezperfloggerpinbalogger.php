@@ -55,8 +55,7 @@ class eZPerfLoggerPinbaLogger extends pinba implements eZPerfLoggerLogger
         $struct = static::get_packet_info($script_name);
         $message = prtbfr::encode($struct, self::$message_proto);
 
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $server = $ini->variable( 'pinbaSettings', 'Server' );
+        $server = eZPerfLoggerINI::variable( 'pinbaSettings', 'Server' );
         $port = 30002;
         if (count($parts = explode(':', $server)) > 1)
         {

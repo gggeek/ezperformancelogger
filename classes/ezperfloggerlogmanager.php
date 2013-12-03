@@ -36,11 +36,11 @@ class eZPerfLoggerLogManager
 
             if ( $startLine )
             {
-                eZDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines: $logFilePath", __METHOD__ );
+                eZPerfLoggerDebug::writeDebug( "Found state of previous run. Log file parsing will skip some lines: $logFilePath", __METHOD__ );
             }
             else
             {
-                eZDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
+                eZPerfLoggerDebug::writeDebug( "State of previous run not found. Parsing the whole log file: $logFilePath", __METHOD__ );
             }
         }
 
@@ -55,9 +55,6 @@ class eZPerfLoggerLogManager
         $lastLine = "";
         $startTime = time();
         $count = 0;
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        //$storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
-        //$excludeRegexps = $ini->variable( 'ParsingSettings', 'ExcludeUrls' );
         $skipped = 0;
         $total = 0;
         $parsed = 0;
@@ -74,7 +71,7 @@ class eZPerfLoggerLogManager
                 }
                 else
                 {
-                    $noteVars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+                    $noteVars = eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' );
                 }
                 //$noteVarsCount = count( $noteVars );
                 $startParse = ( $startLine === false );
@@ -131,14 +128,14 @@ class eZPerfLoggerLogManager
             }
             else
             {
-                eZDebug::writeWarning( "Cannot open log-file '$logFilePath' for reading, please check permissions and try again.", __METHOD__ );
+                eZPerfLoggerDebug::writeWarning( "Cannot open log-file '$logFilePath' for reading, please check permissions and try again.", __METHOD__ );
                 return false;
             }
         }
         else
         {
             /// demoted to a Debug message, as after rotation this can happen
-            eZDebug::writeDebug( "Log-file '$logFilePath' doesn't exist, please check your ini-settings and try again.", __METHOD__ );
+            eZPerfLoggerDebug::writeDebug( "Log-file '$logFilePath' doesn't exist, please check your ini-settings and try again.", __METHOD__ );
             return false;
         }
 
@@ -154,10 +151,10 @@ class eZPerfLoggerLogManager
             self::writeUpdateToken( $tokenFileName, $lastLine );
         }
 
-        /*eZDebug::writeDebug( 'Empty lines: ' . $empty );
-           eZDebug::writeDebug( 'Skipped lines: ' . $skipped );
-           eZDebug::writeDebug( 'Parsed lines: ' . $parsed );
-           eZDebug::writeDebug( 'Total lines: ' . $total );*/
+        /*eZPerfLoggerDebug::writeDebug( 'Empty lines: ' . $empty );
+           eZPerfLoggerDebug::writeDebug( 'Skipped lines: ' . $skipped );
+           eZPerfLoggerDebug::writeDebug( 'Parsed lines: ' . $parsed );
+           eZPerfLoggerDebug::writeDebug( 'Total lines: ' . $total );*/
 
         return array( 'empty' => $empty, 'skipped' => $skipped, 'parsed' => $parsed, 'counted' => $count, 'total' => $total );
     }
@@ -169,9 +166,8 @@ class eZPerfLoggerLogManager
      */
     protected static function writeUpdateToken( $tokenFile, $tokenLine )
     {
-        $ini = eZINI::instance();
         $sys = eZSys::instance();
-        $updateViewLogPath = $sys->varDirectory() . "/" . $ini->variable( 'FileSettings', 'LogDir' ) . "/" . $tokenFile;
+        $updateViewLogPath = $sys->varDirectory() . "/" . eZPerfLoggerINI::variable( 'FileSettings', 'LogDir', 'site.ini' ) . "/" . $tokenFile;
         $dt = new eZDateTime();
         if ( !file_put_contents(
             $updateViewLogPath,
@@ -179,7 +175,7 @@ class eZPerfLoggerLogManager
             "# Last updated entry:" . "\n" .
             $tokenLine . "\n" ) )
         {
-            eZDebug::writeError( "Could not store last date of perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
+            eZPerfLoggerDebug::writeError( "Could not store last date of perf-log file parsing in $updateViewLogPath, double-counting might occur", __METHOD__ );
         }
     }
 
@@ -189,9 +185,8 @@ class eZPerfLoggerLogManager
      */
     protected static function readUpdateToken( $tokenFile )
     {
-        $ini = eZINI::instance();
         $sys = eZSys::instance();
-        $updateViewLogPath = $sys->varDirectory() . "/" . $ini->variable( 'FileSettings', 'LogDir' ) . "/" . $tokenFile;
+        $updateViewLogPath = $sys->varDirectory() . "/" . eZPerfLoggerINI::variable( 'FileSettings', 'LogDir', 'site.ini' ) . "/" . $tokenFile;
         if ( is_file( $updateViewLogPath ) )
         {
             // nb: we need the newline at the end of the saved line for a proper comparison
@@ -213,7 +208,7 @@ class eZPerfLoggerLogManager
         {
             if ( !rename( $filepath, $filepath . "." . strftime( '%Y%m%d_%H%M%S' ) ) )
             {
-                eZDebug::writeWarning( "Could not rotate log file $filepath", __METHOD__ );
+                eZPerfLoggerDebug::writeWarning( "Could not rotate log file $filepath", __METHOD__ );
             }
         }
         if ( $maxFiles )
@@ -233,7 +228,7 @@ class eZPerfLoggerLogManager
                 $oldest = "$dir/" . reset( $files );
                 if ( !unlink( $oldest ) )
                 {
-                    eZDebug::writeWarning( "Could not remove log file $oldest", __METHOD__ );
+                    eZPerfLoggerDebug::writeWarning( "Could not remove log file $oldest", __METHOD__ );
                 }
             }
         }

@@ -1,4 +1,5 @@
 *.PHPEditProject
+.idea/
 *.bak
 *.ongoing
 *.orig

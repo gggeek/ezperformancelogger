@@ -70,8 +70,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             eZXHProfLogger::stop();
         }
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        if ( $ini->variable( 'XHProfSettings', 'AppendXHProfTag' ) == 'enabled' && $runs = eZXHProfLogger::runs() )
+        if ( eZPerfLoggerINI::variable( 'XHProfSettings', 'AppendXHProfTag' ) == 'enabled' && $runs = eZXHProfLogger::runs() )
         {
             $xhtag = "<!-- XHProf runs: " . implode( ',', $runs ) . " -->";
             $output = preg_replace( "#</body>#", $xhtag . '</body>', $output, -1, $count );
@@ -140,7 +139,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
-        return in_array( 'ezperformancelogger', eZINI::instance()->variable( 'ExtensionSettings', 'ActiveExtensions' ) );
+        return in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
     }
 
     /**
@@ -156,8 +155,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         if ( $domeasure )
         {
             // look up any perf data provider, and ask each one to give us its values
-            $ini = eZINI::instance( 'ezperformancelogger.ini' );
-            foreach( $ini->variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
+            foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
             {
                 /// @todo !important check that $measuringClass exposes the correct interface
                 $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output ) );
@@ -167,7 +165,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 }
                 else
                 {
-                    eZDebug::writeError( "Perf measuring class $measuringClass did not return an array of data", __METHOD__ );
+                    eZPerfLoggerDebug::writeError( "Perf measuring class $measuringClass did not return an array of data", __METHOD__ );
                 }
             }
         }
@@ -185,8 +183,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     {
         // check if there is any registered filter class. If there is, ask it whether we should log or not
         $skip = false;
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $filters = $ini->variable( 'GeneralSettings', 'LogFilters' );
+        $filters = eZPerfLoggerINI::variable( 'GeneralSettings', 'LogFilters' );
         // cater to 'array reset' situations: only 1 empty val in the array
         if ( count( $filters ) > 1 || ( count( $filters ) == 1 && $filters[0] != '' ) )
         {
@@ -207,13 +204,13 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             // only the ones corresponding to variables defined in the ini file,
             // not all the values measured so far
             $toLog = array();
-            foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $varName )
+            foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $varName )
             {
                 $toLog[$varName] = isset( $values[$varName] ) ? $values[$varName] : null;
             }
 
             // for each logging type configured, log values to it, using the class which supports it
-            foreach( $ini->variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
+            foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
             {
                 $logged = false;
                 foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
@@ -229,7 +226,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 }
                 if ( !$logged )
                 {
-                    eZDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
+                    eZPerfLoggerDebug::writeError( "Could not log perf data to log '$logMethod', no logger class supports it", __METHOD__ );
                 }
             }
 
@@ -291,8 +288,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         self::$outputSize = strlen( $output );
 
         $out = array();
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $vars = $ini->variable( 'GeneralSettings', 'TrackVariables' );
+        $vars = eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' );
 
         foreach ( $vars as $var )
         {
@@ -409,7 +405,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
         else
         {
-            eZDebug::writeWarning( "Can not recover module result variable $var", __METHOD__ );
+            eZPerfLoggerDebug::writeWarning( "Can not recover module result variable $var", __METHOD__ );
             return $default;
         }
     }
@@ -462,7 +458,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
         else
         {
-            eZDebug::writeWarning( 'Can not trace module params data, global variable "eZRequestedModuleParams" not found. Are you on eZ 5.0 or later?', __METHOD__ );
+            eZPerfLoggerDebug::writeWarning( 'Can not trace module params data, global variable "eZRequestedModuleParams" not found. Are you on eZ 5.0 or later?', __METHOD__ );
             return $default;
         }
     }
@@ -493,9 +489,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 break;
 
             case 'piwik':
-                $ini = eZINI::instance( 'ezperformancelogger.ini' );
                 $text = '';
-                foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                 {
                     $text .= "\npiwikTracker.setCustomVariable( $i, \"$var\", \"{$values[$var]}\", \"page\" );";
                 }
@@ -504,9 +499,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 break;
 
             case 'googleanalytics':
-                $ini = eZINI::instance( 'ezperformancelogger.ini' );
                 $text = '';
-                foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                 {
                     $text .= "\n_gaq.push([$i, '$var', '{$values[$var]}', 3]);";
                 }
@@ -538,8 +532,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 if ( $method == 'logfile' )
                 {
                     $text .= "\n";
-                    $ini = eZINI::instance( 'ezperformancelogger.ini' );
-                    file_put_contents( $ini->variable( 'logfileSettings', 'FileName' ), $text, FILE_APPEND );
+                    file_put_contents( eZPerfLoggerINI::variable( 'logfileSettings', 'FileName' ), $text, FILE_APPEND );
                 }
                 else
                 {
@@ -562,8 +555,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 }
                 else
                 {
-                    $ini = eZINI::instance( 'ezperformancelogger.ini' );
-                    $storageClass = $ini->variable( 'ParsingSettings', 'StorageClass' );
+                    $storageClass = eZPerfLoggerINI::variable( 'ParsingSettings', 'StorageClass' );
                 }
 
                 /// @todo log error if storage class does not implement correct interface

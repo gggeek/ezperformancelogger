@@ -23,10 +23,9 @@ class eZPerfLoggerOdoscopeLogger implements eZPerfLoggerLogger
 
     protected static function logByRewrite( array $data, &$output )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $prefix = $ini->variable( 'OdoscopeSettings', 'VariablePrefix' );
+        $prefix = eZPerfLoggerINI::variable( 'OdoscopeSettings', 'VariablePrefix' );
         $text = "";
-        foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $var )
+        foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $var )
         {
             $text .= "&amp;$prefix" . urlencode( $var ) . "=" . urlencode( $data[$var] );
         }
@@ -41,10 +40,9 @@ class eZPerfLoggerOdoscopeLogger implements eZPerfLoggerLogger
 
     protected static function generateJSEventsFunctionCalls( $data )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $prefix = $ini->variable( 'OdoscopeSettings', 'VariablePrefix' );
+        $prefix = eZPerfLoggerINI::variable( 'OdoscopeSettings', 'VariablePrefix' );
         $text = "";
-        foreach( $ini->variable( 'GeneralSettings', 'TrackVariables' ) as $var )
+        foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $var )
         {
             /// @todo proper js escaping; do not add quotes for numeric values?
             $text .= "osc.evt( '" . $prefix . urlencode( $var ) . "', '" . urlencode( $data[$var] ) . "' );\n";

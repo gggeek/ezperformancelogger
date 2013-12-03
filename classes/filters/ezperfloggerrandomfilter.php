@@ -8,8 +8,7 @@ class eZPerfLoggerRandomFilter implements eZPerfLoggerFilter
 {
     public static function shouldLog( array $data, $output )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        if ( rand( 0, $ini->variable( 'LogFilterSettings', 'MemoryhungrypagesFilter' ) ) <= 1 )
+        if ( rand( 0, eZPerfLoggerINI::variable( 'LogFilterSettings', 'MemoryhungrypagesFilter' ) ) <= 1 )
         {
             return true;
         }

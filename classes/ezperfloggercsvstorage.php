@@ -18,10 +18,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
      */
     public static function insertStats( array $data )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $csvfile = $ini->variable( 'csvSettings', 'FileName' );
-        $separator = $ini->variable( 'csvSettings', 'Separator' );
-        $quotes = $ini->variable( 'csvSettings', 'Quotes' );
+        list( $csvfile, $separator, $quotes ) = eZPerfLoggerINI::variableMulti( 'csvSettings', array( 'FileName', 'Separator', 'Quotes' ) );
         $addheader = false;
         if ( !file_exists( $csvfile ) )
         {
@@ -35,7 +32,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
         if ( $addheader )
         {
             fwrite( $fp, "Timestamp{$separator}" );
-            fwrite( $fp, implode( $separator, $ini->variable( 'GeneralSettings', 'TrackVariables' ) ) );
+            fwrite( $fp, implode( $separator, eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) ) );
             fwrite( $fp, "{$separator}Date{$separator}IP Address{$separator}Response Status{$separator}Response size{$separator}URL\n" );
         }
         foreach( $data as $line )
@@ -56,8 +53,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
     {
         $countersCount = count( $counters );
 
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $separator = $ini->variable( 'csvSettings', 'Separator' );
+        $separator = eZPerfLoggerINI::variable( 'csvSettings', 'Separator' );
 
         $logPartArray = explode( $separator, $line, $countersCount + 6 );
         if ( count( $logPartArray ) < $countersCount + 6 )

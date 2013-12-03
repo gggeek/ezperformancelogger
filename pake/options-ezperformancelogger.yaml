@@ -3,7 +3,7 @@ extension:
 
 version:
     major: 0
-    minor: 10
+    minor: 11
     release: 0
 
 ezp:

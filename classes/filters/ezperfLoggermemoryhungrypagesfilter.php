@@ -8,8 +8,7 @@ class eZPerfLoggerMemoryhungrypagesFilter implements eZPerfLoggerFilter
 {
     public static function shouldLog( array $data, $output )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        if ( !isset( $data['mem_usage'] ) || $data['mem_usage'] >= $ini->variable( 'LogFilterSettings', 'MemoryhungrypagesFilter' ) )
+        if ( !isset( $data['mem_usage'] ) || $data['mem_usage'] >= eZPerfLoggerINI::variable( 'LogFilterSettings', 'MemoryhungrypagesFilter' ) )
         {
             return true;
         }

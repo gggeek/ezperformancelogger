@@ -22,10 +22,7 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
      */
     public static function doLog( $logMethod, array $data, &$output )
     {
-        $ini = eZINI::instance( 'ezperformancelogger.ini' );
-        $host = $ini->variable( 'StatsdSettings', 'Host' );
-        $port = $ini->variable( 'StatsdSettings', 'Port' );
-        $types = $ini->variable( 'StatsdSettings', 'VariableTypes' );
+        list( $host, $port, $types ) = eZPerfLoggerINI::variableMulti( 'StatsdSettings', array( 'Host', 'Port', 'VariableTypes' ) );
 
         // Failures in any of this should be silently ignored
         try
@@ -40,10 +37,10 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
             $fp = fsockopen( "udp://$host", (int)$port, $errNo, $errStr );
             if ( !$fp )
             {
-                eZDebug::writeWarning( "Could not open udp socket to $host:$port - $errStr", __METHOD__ );
+                eZPerfLoggerDebug::writeWarning( "Could not open udp socket to $host:$port - $errStr", __METHOD__ );
                 return;
             }
-            if ( $ini->variable( 'StatsdSettings', 'SendMetricsInSinglePacket' ) == 'enabled' )
+            if ( eZPerfLoggerINI::variable( 'StatsdSettings', 'SendMetricsInSinglePacket' ) == 'enabled' )
             {
                 fwrite( $fp, implode( "\n", $strings ) );
             }
@@ -74,9 +71,8 @@ class eZPerfLoggerStatsdLogger implements eZPerfLoggerLogger
     {
         if ( self::$prefix === null || self::$postfix === null )
         {
-            $ini = eZINI::instance( 'ezperformancelogger.ini' );
-            $strip = ( $ini->variable( 'StatsdSettings', 'RemoveEmptyTokensInVariable' ) == 'enabled' );
-            foreach( array( $ini->variable( 'StatsdSettings', 'VariablePrefix' ), $ini->variable( 'StatsdSettings', 'VariablePostfix' ) ) as $i => $string )
+            $strip = ( eZPerfLoggerINI::variable( 'StatsdSettings', 'RemoveEmptyTokensInVariable' ) == 'enabled' );
+            foreach( array( eZPerfLoggerINI::variable( 'StatsdSettings', 'VariablePrefix' ), eZPerfLoggerINI::variable( 'StatsdSettings', 'VariablePostfix' ) ) as $i => $string )
             {
                 if ( strpos( $string, '$' ) !== false )
                 {

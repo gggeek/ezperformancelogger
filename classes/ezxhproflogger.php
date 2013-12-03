@@ -26,7 +26,7 @@ class eZXHProfLogger /*extends XHProfRuns_Default*/
     {
         if ( !extension_loaded( 'xhprof' ) )
         {
-            eZDebug::writeWarning( 'Extension xhprof not loaded, can not start profiling', __METHOD__ );
+            eZPerfLoggerDebug::writeWarning( 'Extension xhprof not loaded, can not start profiling', __METHOD__ );
             return false;
         }
         xhprof_enable( $flags + XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, $options );
@@ -43,7 +43,7 @@ class eZXHProfLogger /*extends XHProfRuns_Default*/
     {
         if ( !extension_loaded( 'xhprof' ) )
         {
-            eZDebug::writeWarning( 'Extension xhprof not loaded, can not stop profiling', __METHOD__ );
+            eZPerfLoggerDebug::writeWarning( 'Extension xhprof not loaded, can not stop profiling', __METHOD__ );
             return false;
         }
 
