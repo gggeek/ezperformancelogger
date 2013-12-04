@@ -1,0 +1,28 @@
+changelog from version 0.10.1 to 0.11 - released 2013.12.xx
+
+* New features
+
+- Integration with eZPublish 5 (new stack) has begun!
+  It is now much easier to use the extension from eZ5 context - watch out for a dedicated bundle in the future, though.
+  (Also please do not complain about all the ugly thunking code which was added ;-) Keeping a single codebase working
+  with 2 kernels is no easy feat)
+
+  The guiding principles are:
+  . to make it easy to add custom KPIs using the same php API, either from eZ5 or eZ-LS context
+  . to still have the extension working perfectly in a pure-LS installation
+  . to avoid as much as possible context switches within the extension itself, to avoid perf losses
+
+- A new method has been added: ezPerflogger::disable()
+  It is recommended to use it when
+  . your code adds custom KPI data, measured via calls to eZPerfLogger::accumulatorStart/Stop
+  . you do not want to log performance data at all any more, but find disabling/removing ezperformancelogger too cumbersome
+  A good place where to put such call is in config.php
+
+- It is now possible to properly trace the http response code (but this still does not happen automatically out of the box)
+
+* Bugfixes
+
+* Changes
+
+- BC BREAK: the eZPerfLoggerProvider::measure() method signature has changed; now it takes and extra, optional
+            retcode parameter (used to trace http response status)
