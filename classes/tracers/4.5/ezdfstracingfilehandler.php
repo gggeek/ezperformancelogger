@@ -307,5 +307,21 @@ class eZDFSTracing45FileHandler extends eZDFSFileHandler
         return new eZClusterFileFailure( 2, "Manual generation of file data is required, calling storeCache is required" );
     }
 
+    static public function measure()
+    {
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'mysql_cluster_cache_waits'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
+
+    public static function supportedVariables()
+    {
+        return array(
+            'mysql_cluster_cache_waits' => 'integer',
+            'mysql_cluster_cache_waits_t' => 'float (secs, rounded to msec)',
+            'mysql_cluster_cache_waits_tmax' => 'float (secs, rounded to msec)',
+        );
+    }
 }
 ?>

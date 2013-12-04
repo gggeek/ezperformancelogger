@@ -237,25 +237,22 @@ class eZDFSFileHandlerTracing50MySQLiBackend extends eZDFSFileHandlerMySQLiBacke
 
     static public function measure()
     {
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'mysql_cluster_query', 'mysql_cluster_connect'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $measured = array();
-        foreach( array( 'mysql_cluster_query', 'mysql_cluster_connect' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'mysql_cluster_query' => 'integer',
+            'mysql_cluster_query_t' => 'float (secs, rounded to msec)',
+            'mysql_cluster_query_tmax' => 'float (secs, rounded to msec)',
+            'mysql_cluster_connect' => 'integer',
+            'mysql_cluster_connect_t' => 'float (secs, rounded to msec)',
+            'mysql_cluster_connect_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 
 }

@@ -23,7 +23,12 @@ changelog from version 0.10.1 to 0.11 - released 2013.12.xx
 
 * Bugfixes
 
+- revamping (cleanup and bugfixes) of most existing "tracing" handlers (db, cluster, imagemagick)
+
 * Changes
 
 - BC BREAK: the eZPerfLoggerProvider::measure() method signature has changed; now it takes and extra, optional
             retcode parameter (used to trace http response status)
+
+- BC BREAK: if you are using the VariableProviders coming from the extension, they have been renamed and/or the variables
+            they provide have been shifted around. Check ezperformancelogger.ini for details and adapt your config accordingly

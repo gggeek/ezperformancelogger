@@ -418,25 +418,22 @@ class eZDFSFileHandlerTracing50OracleBackend extends eZDFSFileHandlerOracleBacke
 
     static public function measure()
     {
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'oracle_cluster_query', 'oracle_cluster_connect'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $measured = array();
-        foreach( array( 'oracle_cluster_query', 'oracle_cluster_connect' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'oracle_cluster_query' => 'integer',
+            'oracle_cluster_query_t' => 'float (secs, rounded to msec)',
+            'oracle_cluster_query_tmax' => 'float (secs, rounded to msec)',
+            'oracle_cluster_connect' => 'integer',
+            'oracle_cluster_connect_t' => 'float (secs, rounded to msec)',
+            'oracle_cluster_connect_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 

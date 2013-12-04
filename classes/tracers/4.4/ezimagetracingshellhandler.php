@@ -223,26 +223,19 @@ class eZImageTracing44ShellHandler extends eZImageShellHandler
 
     static public function measure()
     {
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'imagemagick_image_conversion'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
-
-        $measured = array();
-        foreach( array( 'imagemagick_image_conversion' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'imagemagick_image_conversion' => 'integer',
+            'imagemagick_image_conversion_t' => 'float (secs, rounded to msec)',
+            'imagemagick_image_conversion_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 

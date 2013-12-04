@@ -26,25 +26,19 @@ class eZDFSFileHandlerTracing46DFSBackend extends eZDFSFileHandlerDFSBackend
 
     static public function measure()
     {
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'mysql_cluster_dfs_operations'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $measured = array();
-        foreach( array( 'mysql_cluster_dfs_operations' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'mysql_cluster_dfs_operations' => 'integer',
+            'mysql_cluster_dfs_operations_t' => 'float (secs, rounded to msec)',
+            'mysql_cluster_dfs_operations_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 ?>

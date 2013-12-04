@@ -559,27 +559,28 @@ class eZOracleTracing50DB extends eZOracleDB
 
     static public function measure()
     {
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'oracle_connection', 'oracle_query', 'oracle_loop', 'oracle_conversion'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $measured = array();
-        foreach( array( 'oracle_connection', 'oracle_query', 'oracle_loop', 'oracle_conversion' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        //$measured['mysqli_offsets_s']  = "'" . ( is_array( @$timeAccumulatorList['mysqli_loop']['data'] ) ? implode( ',', $timeAccumulatorList['mysqli_loop']['data'] )  : '' ) . "'";
-
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'oracle_connection' => 'integer',
+            'oracle_connection_t' => 'float (secs, rounded to msec)',
+            'oracle_connection_tmax' => 'float (secs, rounded to msec)',
+            'oracle_query' => 'integer',
+            'oracle_query_t' => 'float (secs, rounded to msec)',
+            'oracle_query_tmax' => 'float (secs, rounded to msec)',
+            'oracle_loop' => 'integer',
+            'oracle_loop_t' => 'float (secs, rounded to msec)',
+            'oracle_loop_tmax' => 'float (secs, rounded to msec)',
+            'oracle_conversion' => 'integer',
+            'oracle_conversion_t' => 'float (secs, rounded to msec)',
+            'oracle_conversion_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 

@@ -27,11 +27,11 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
                 eZDebug::writeWarning( 'mysqli only supports persistent connections when using php 5.3 and higher', 'eZMySQLiDB::connect' );
         }
 
-        self::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
+        eZPerfLogger::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
         $connection = mysqli_connect( $server, $user, $password, null, (int)$port, $socketPath );
 
         $dbErrorText = mysqli_connect_error();
-        self::accumulatorStop( 'mysqli_connection' );
+        eZPerfLogger::accumulatorStop( 'mysqli_connection' );
 
         $maxAttempts = $this->connectRetryCount();
         $waitTime = $this->connectRetryWaitTime();
@@ -40,9 +40,9 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
         {
             sleep( $waitTime );
 
-            self::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
+            eZPerfLogger::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
             $connection = mysqli_connect( $this->Server, $this->User, $this->Password, null, (int)$this->Port, $this->SocketPath );
-            self::accumulatorStop( 'mysqli_connection' );
+            eZPerfLogger::accumulatorStop( 'mysqli_connection' );
 
             $numAttempts++;
         }
@@ -59,9 +59,9 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
 
         if ( $this->IsConnected && $db != null )
         {
-            self::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
+            eZPerfLogger::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
             $ret = mysqli_select_db( $connection, $db );
-            self::accumulatorStop( 'mysqli_connection' );
+            eZPerfLogger::accumulatorStop( 'mysqli_connection' );
             if ( !$ret )
             {
                 //$this->setError();
@@ -78,9 +78,9 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
 
         if ( $this->IsConnected and $charset !== null )
         {
-            self::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
+            eZPerfLogger::accumulatorStart( 'mysqli_connection', 'mysqli_total', 'Database connection' );
             $status = mysqli_set_charset( $connection, eZMySQLCharset::mapTo( $charset ) );
-            self::accumulatorStop( 'mysqli_connection' );
+            eZPerfLogger::accumulatorStop( 'mysqli_connection' );
             if ( !$status )
             {
                 $this->setError();
@@ -95,14 +95,14 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
     {
         if ( $this->IsConnected )
         {
-            self::accumulatorStart( 'mysqli_query', 'mysqli_total', 'Mysqli_queries' );
+            eZPerfLogger::accumulatorStart( 'mysqli_query', 'mysqli_total', 'Mysqli_queries' );
             $orig_sql = $sql;
             // The converted sql should not be output
             if ( $this->InputTextCodec )
             {
-                self::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
+                eZPerfLogger::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
                 $sql = $this->InputTextCodec->convertString( $sql );
-                self::accumulatorStop( 'mysqli_conversion' );
+                eZPerfLogger::accumulatorStop( 'mysqli_conversion' );
             }
 
             if ( $this->OutputSQL )
@@ -227,7 +227,7 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
                     $this->reportQuery( __CLASS__ . '[' . $connection->host_info . ( $server == eZDBInterface::SERVER_MASTER ? ', on master' : '' ) . ']', $text, $num_rows, $this->timeTaken() );
                 }
             }
-            self::accumulatorStop( 'mysqli_query' );
+            eZPerfLogger::accumulatorStop( 'mysqli_query' );
             if ( $result )
             {
                 return $result;
@@ -296,13 +296,13 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
                 return false;
             }
 
-            self::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
+            eZPerfLogger::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
             $numRows = mysqli_num_rows( $result );
             if ( $numRows > 0 )
             {
                 if ( !is_string( $column ) )
                 {
-                    //self::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
+                    //eZPerfLogger::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
                     for ( $i=0; $i < $numRows; $i++ )
                     {
                         if ( $this->InputTextCodec )
@@ -311,105 +311,70 @@ class eZMySQLiTracing44DB extends eZMySQLiDB
                             $convRow = array();
                             foreach( $tmpRow as $key => $row )
                             {
-                                self::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
+                                eZPerfLogger::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
                                 $convRow[$key] = $this->OutputTextCodec->convertString( $row );
-                                self::accumulatorStop( 'mysqli_conversion' );
+                                eZPerfLogger::accumulatorStop( 'mysqli_conversion' );
                             }
                             $retArray[$i + $offset] = $convRow;
                         }
                         else
                             $retArray[$i + $offset] = mysqli_fetch_array( $result, MYSQLI_ASSOC );
                     }
-                    self::accumulatorStop( 'mysqli_loop' );
+                    eZPerfLogger::accumulatorStop( 'mysqli_loop' );
 
                 }
                 else
                 {
-                    //self::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
+                    //eZPerfLogger::accumulatorStart( 'mysqli_loop', 'mysqli_total', 'Looping result' );
                     for ( $i=0; $i < $numRows; $i++ )
                     {
                         $tmp_row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
                         if ( $this->InputTextCodec )
                         {
-                            self::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
+                            eZPerfLogger::accumulatorStart( 'mysqli_conversion', 'mysqli_total', 'String conversion in mysqli' );
                             $retArray[$i + $offset] = $this->OutputTextCodec->convertString( $tmp_row[$column] );
-                            self::accumulatorStop( 'mysqli_conversion' );
+                            eZPerfLogger::accumulatorStop( 'mysqli_conversion' );
                         }
                         else
                             $retArray[$i + $offset] =& $tmp_row[$column];
                     }
-                    self::accumulatorStop( 'mysqli_loop' );
+                    eZPerfLogger::accumulatorStop( 'mysqli_loop' );
                 }
             }
             else
             {
-                self::accumulatorStop( 'mysqli_loop' );
+                eZPerfLogger::accumulatorStop( 'mysqli_loop' );
             }
         }
         return $retArray;
     }
 
-
-
-    static $timeAccumulatorList = array();
-
-    protected static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
-    {
-        $startTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
-        {
-            eZDebug::accumulatorStart( $val, $group, $label );
-        }
-        if ( !isset( self::$timeAccumulatorList[$val] ) )
-        {
-            self::$timeAccumulatorList[$val] = array( 'group' => $group, 'data' => array(), 'time' => 0 );
-        }
-        self::$timeAccumulatorList[$val]['temp_time'] = $startTime;
-        if ( $data !== null )
-        {
-            self::$timeAccumulatorList[$val]['data'][] = $data;
-        }
-    }
-
-    protected static function accumulatorStop( $val )
-    {
-        $stopTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
-        {
-            eZDebug::accumulatorStop( $val );
-        }
-        if ( !isset( self::$timeAccumulatorList[$val]['count'] ) )
-        {
-            self::$timeAccumulatorList[$val]['count'] = 1;
-        }
-        else
-        {
-            self::$timeAccumulatorList[$val]['count'] = self::$timeAccumulatorList[$val]['count'] + 1;
-        }
-        self::$timeAccumulatorList[$val]['time'] = $stopTime - self::$timeAccumulatorList[$val]['temp_time'] + self::$timeAccumulatorList[$val]['time'];
-    }
-
-    public static function timeAccumulators()
-    {
-        return self::$timeAccumulatorList;
-    }
+    ### perf tracing stuff
 
     static public function measure()
     {
-        foreach( array( 'mysqli_connection', 'mysqli_query', 'mysqli_loop', 'mysqli_conversion' ) as $name )
-        {
-            if ( isset( self::$timeAccumulatorList[$name] ) )
-            {
-                eZPerfLogger::recordValue( $name, self::$timeAccumulatorList[$name]['count'] );
-                eZPerfLogger::recordValue( $name . '_t', self::$timeAccumulatorList[$name]['time'] );
-            }
-            else
-            {
-                eZPerfLogger::recordValue( $name, 0 );
-                eZPerfLogger::recordValue( $name . '_t', 0 );
-            }
-        }
-        eZPerfLogger::recordValue( 'mysqli_offsets_s', "'" . implode( ',', @self::$timeAccumulatorList['mysqli_loop']['data'] ) . "'" );
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'mysqli_connection', 'mysqli_query', 'mysqli_loop', 'mysqli_conversion'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
+
+    public static function supportedVariables()
+    {
+        return array(
+            'mysqli_connection' => 'integer',
+            'mysqli_connection_t' => 'float (secs, rounded to msec)',
+            'mysqli_connection_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_query' => 'integer',
+            'mysqli_query_t' => 'float (secs, rounded to msec)',
+            'mysqli_query_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_loop' => 'integer',
+            'mysqli_loop_t' => 'float (secs, rounded to msec)',
+            'mysqli_loop_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_conversion' => 'integer',
+            'mysqli_conversion_t' => 'float (secs, rounded to msec)',
+            'mysqli_conversion_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 

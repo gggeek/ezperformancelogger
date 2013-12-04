@@ -366,27 +366,28 @@ class eZMySQLiTracing46DB extends eZMySQLiDB
 
     static public function measure()
     {
-        $timeAccumulatorList = eZPerfLogger::TimeAccumulatorList();
+        return eZPerfLoggerGenericTracer::StdKPIsFromAccumulators( array(
+                'mysqli_connection', 'mysqli_query', 'mysqli_loop', 'mysqli_conversion'
+            ),  eZPerfLogger::TimeAccumulatorList()
+        );
+    }
 
-        $measured = array();
-        foreach( array( 'mysqli_connection', 'mysqli_query', 'mysqli_loop', 'mysqli_conversion' ) as $name )
-        {
-            if ( isset( $timeAccumulatorList[$name] ) )
-            {
-                $measured[$name] = $timeAccumulatorList[$name]['count'];
-                $measured[$name . '_t'] = round( $timeAccumulatorList[$name]['time'], 3 );
-                $measured[$name . '_tmax'] = round( $timeAccumulatorList[$name]['maxtime'], 3 );
-            }
-            else
-            {
-                $measured[$name] = 0;
-                $measured[$name . '_t'] = 0;
-                $measured[$name . '_tmax'] = 0;
-            }
-        }
-        //$measured['mysqli_offsets_s']  = "'" . ( is_array( @$timeAccumulatorList['mysqli_loop']['data'] ) ? implode( ',', $timeAccumulatorList['mysqli_loop']['data'] )  : '' ) . "'";
-
-        return $measured;
+    public static function supportedVariables()
+    {
+        return array(
+            'mysqli_connection' => 'integer',
+            'mysqli_connection_t' => 'float (secs, rounded to msec)',
+            'mysqli_connection_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_query' => 'integer',
+            'mysqli_query_t' => 'float (secs, rounded to msec)',
+            'mysqli_query_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_loop' => 'integer',
+            'mysqli_loop_t' => 'float (secs, rounded to msec)',
+            'mysqli_loop_tmax' => 'float (secs, rounded to msec)',
+            'mysqli_conversion' => 'integer',
+            'mysqli_conversion_t' => 'float (secs, rounded to msec)',
+            'mysqli_conversion_tmax' => 'float (secs, rounded to msec)',
+        );
     }
 }
 
