@@ -20,10 +20,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     static protected $outputSize = null;
     static protected $returnCode = 200;
     static protected $has_run = false;
+    static protected $activated = true;
     static protected $timeAccumulatorList = array();
     static protected $nodeId = null;
-
-    static protected $enabled = true;
 
     /*** Methods available to php code wanting to record perf data without hassles ***/
 
@@ -120,32 +119,38 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
     /**
-     * Courtesy method to allow callers to go through
-     * cleanup() calls many times; needed for eZP 5.x and proper
-     * tracing of redirecting pages
+     * Courtesy method to allow callers to go through cleanup() calls many times; needed for eZP 5.x and proper
+     * tracing of redirecting pages.
+     * Note that this by default only disables collecting/displaying data, not measuring timing points.
+     * If you really want not to measure or log anything, pass TRUE as parameter.
      */
-    static public function disable()
+    static public function disable( $deactivate=false )
     {
         self::$has_run = true;
+        if ( $deactivate )
+        {
+            self::$activated = false;
+        }
     }
 
     /**
-     * Courtesy method to allow callers to go through
-     * cleanup() calls many times; needed for eZP 5.x and proper
+     * Courtesy method to allow callers to go through cleanup() calls many times; needed for eZP 5.x and proper
      * tracing of redirecting pages
-     *
-     * @todo this should be renamed to "reload" really, as it is not effective after a call to disable()
      */
-    static public function reenable()
+    static public function reenable( $reactivate=false )
     {
         self::$has_run = false;
+        if ( $reactivate )
+        {
+            self::$activated = true;
+        }
     }
 
     /// @todo fix to run from eZ5 context
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
-        return self::$enabled && in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
+        return self::$activated && in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
     }
 
     /**
@@ -596,7 +601,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     public static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
     {
         // allow 3rd party code to leave in perf. measuring hooks with minimal speed loss
-        if ( !self::$enabled )
+        if ( !self::$activated )
             return false;
 
         $startTime = microtime( true );
@@ -618,7 +623,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     public static function accumulatorStop( $val )
     {
         // allow 3rd party code to leave in perf. measuring hooks with minimal speed loss
-        if ( !self::$enabled )
+        if ( !self::$activated )
             return false;
 
         $stopTime = microtime( true );
@@ -648,10 +653,6 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         return self::$timeAccumulatorList;
     }
 
-    public static function disable()
-    {
-        self::$enabled = false;
-    }
 }
 
 ?>
