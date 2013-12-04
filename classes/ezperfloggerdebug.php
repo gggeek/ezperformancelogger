@@ -6,7 +6,7 @@
  */
 
 /**
- * A class which should isolate us from ez4/ez5 config pains (read: allow code to run in ez5 context and do not
+ * A class which helps isolating us from ez4/ez5 config pains (read: allow code to run in ez5 context and do not
  * switch back to ez4 context just to log a message)
  */
 class eZPerfLoggerDebug
@@ -25,4 +25,9 @@ class eZPerfLoggerDebug
     {
         eZDebug::writeError( $string, $label, $backgroundClass );
     }
-} 
+
+    static function isDebugEnabled()
+    {
+        return eZDebug::isDebugEnabled();
+    }
+}

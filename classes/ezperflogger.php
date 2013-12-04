@@ -89,7 +89,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * In order to do so, you need to call at some point in your controller
      * eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
      */
-    static public function cleanup()
+    static public function cleanup( $output='' )
     {
         if ( !self::$has_run )
         {
@@ -98,14 +98,14 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             // we just check here if extension is enabled or not.
             if ( self::isEnabled() )
             {
-                 self::filter( '' );
+                 self::filter( $output );
             }
         }
     }
 
     /**
-     * Registered as event handler for response/preoutput
-     * (mandatory since ezp 5.0, as OutputFilter has been removed.
+     * This function can be registered as event handler for response/preoutput
+     * (mandatory since ezp 5.0 LS and later, as OutputFilter has been removed).
      */
     static public function preoutput( $output )
     {
@@ -213,7 +213,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'LogMethods' ) as $logMethod )
             {
                 $logged = false;
-                foreach( $ini->variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
+                foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'LogProviders' ) as $loggerClass )
                 {
                     /// @todo !important check that $loggerClass exposes the correct interface
                     if ( in_array( $logMethod, call_user_func( array( $loggerClass, 'supportedLogMethods' ) ) ) )
@@ -580,7 +580,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     public static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
     {
         $startTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
+        if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
             eZDebug::accumulatorStart( $val, $group, $label );
         }
@@ -598,7 +598,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     public static function accumulatorStop( $val )
     {
         $stopTime = microtime( true );
-        if ( eZDebug::isDebugEnabled() )
+        if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
             eZDebug::accumulatorStop( $val );
         }
@@ -619,7 +619,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    public static function TimeAccumulatorList()
+    public static function timeAccumulatorList()
     {
         return self::$timeAccumulatorList;
     }
