@@ -19,7 +19,7 @@ class eZPerfLoggerGenericTracer
      * @param array $timeAccumulatorList full list of accumulators available, as returned by eZPerfLogger::TimeAccumulatorList()
      * @return array
      */
-    static public function StdKPIFromAccumulators( array $accumulators, array $timeAccumulatorList )
+    static public function StdKPIsFromAccumulators( array $accumulators, array $timeAccumulatorList )
     {
         $measured = array();
         foreach( $accumulators as $name )
