@@ -18,9 +18,12 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
 {
     static protected $custom_variables = array();
     static protected $outputSize = null;
+    static protected $returnCode = 200;
     static protected $has_run = false;
     static protected $timeAccumulatorList = array();
     static protected $nodeId = null;
+
+    static protected $enabled = true;
 
     /*** Methods available to php code wanting to record perf data without hassles ***/
 
@@ -57,12 +60,12 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * When xhprof is enabled, an html comment is added to page output
      * (this method runs before debug output is added to it, so we can not add it there)
      */
-    static public function filter( $output )
+    static public function filter( $output, $returnCode=null )
     {
         self::$has_run = true;
 
         // perf logging: measure variables and log them according to configuration
-        $values = self::getValues( true, $output );
+        $values = self::getValues( true, $output, $returnCode );
         self::logIfNeeded( $values, $output );
 
         // profiling
@@ -107,11 +110,11 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This function can be registered as event handler for response/preoutput
      * (mandatory since ezp 5.0 LS and later, as OutputFilter has been removed).
      */
-    static public function preoutput( $output )
+    static public function preoutput( $output, $returnCode=null )
     {
         if ( !self::$has_run )
         {
-            return self::filter( $output );
+            return self::filter( $output, $returnCode );
         }
         return $output;
     }
@@ -130,16 +133,19 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * Courtesy method to allow callers to go through
      * cleanup() calls many times; needed for eZP 5.x and proper
      * tracing of redirecting pages
+     *
+     * @todo this should be renamed to "reload" really, as it is not effective after a call to disable()
      */
     static public function reenable()
     {
         self::$has_run = false;
     }
 
+    /// @todo fix to run from eZ5 context
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
-        return in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
+        return self::$enabled && in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
     }
 
     /**
@@ -150,7 +156,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @return array
      * @too !important split method in 2 methods, with one public and one protected?
      */
-    public static function getValues( $domeasure, $output )
+    public static function getValues( $domeasure, $output, $returnCode=null )
     {
         if ( $domeasure )
         {
@@ -158,7 +164,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
             {
                 /// @todo !important check that $measuringClass exposes the correct interface
-                $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output ) );
+                $measured = call_user_func_array( array( $measuringClass, 'measure' ), array( $output, $returnCode ) );
                 if ( is_array( $measured ) )
                 {
                     self::recordValues( $measured );
@@ -246,6 +252,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             'mem_usage' => 'int (bytes, rounded to 1000)',
             'output_size' => 'int (bytes)'
         );
+        /// @todo fix to run from eZ5 context
         if ( eZDebug::isDebugEnabled() )
         {
             $out['db_queries'] = 'int';
@@ -278,7 +285,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @param string $output
      * @return array
      */
-    static public function measure( $output )
+    static public function measure( $output, $returnCode=null )
     {
         global $scriptStartTime;
 
@@ -286,6 +293,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         // Also using ga / piwik logs do alter $output, making length calculation in doLog() unreliable
         /// @todo this way of passing data around is not really beautiful...
         self::$outputSize = strlen( $output );
+        if ( $returnCode != null )
+        {
+            self::$returnCode = (int) $returnCode;
+        }
 
         $out = array();
         $vars = eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' );
@@ -294,13 +305,15 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             switch( $var )
             {
+                case 'output_size':
+                // some bugs persist forever...
                 case 'ouput_size':
                     $out[$var] = self::$outputSize;
                     break;
 
                 case 'execution_time':
                     // This global var does not exist anymore in eZP LS 5.0.
-                    // We prefere using it when available as it is slightly more accurate
+                    // We prefer using it when available as it is slightly more accurate
                     if ( $scriptStartTime == 0 )
                     {
                         $debug = eZDebug::instance();
@@ -314,7 +327,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     break;
 
                 case 'db_queries':
-                    // (nb: only works when debug is enabled?)
+                    // (nb: only works when debug is enabled.
+                    // Also does most likely not work when logging is done directly from the eZ5 stack
+                    /// @todo fix to run from eZ5 context
                     $dbini = eZINI::instance();
                     // we cannot use $db->databasename() because we get the same for mysql and mysqli
                     $type = preg_replace( '/^ez/', '', $dbini->variable( 'DatabaseSettings', 'DatabaseImplementation' ) );
@@ -357,6 +372,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     }
 
                     // standard accumulators
+                    /// @todo fix to run from eZ5 context
                     if ( strpos( $var, 'accumulators/' ) === 0 )
                     {
                         $parts = explode( '/', $var, 3 );
@@ -437,7 +453,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
         else
         {
-            eZDebug::writeWarning( 'Can not recover module result data, global variable "moduleResult" not found. Are you on eZ 5.0 or later?', __METHOD__ );
+            eZPerfLoggerDebug::writeWarning( 'Can not recover module result data, global variable "moduleResult" not found. Are you on eZ 5.0 or later?', __METHOD__ );
             return $default;
         }
     }
@@ -515,7 +531,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 $size = self::$outputSize;
                 if ( $size == 0 )
                     $size = '-';
-                $text = eZPerfLoggerApacheLogger::apacheLogLine( 'combined', $size, 200 ) . ' ';
+                $text = eZPerfLoggerApacheLogger::apacheLogLine( 'combined', $size, self::$returnCode ) . ' ';
                 foreach( $values as $value )
                 {
                     // do same as apache does: replace nulls with "-"
@@ -565,7 +581,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     'ip' => is_callable( 'eZSys::clientIP' ) ? eZSys::clientIP() : eZSys::serverVariable( 'REMOTE_ADDR' ), // ezp 4.5 or less
                     'time' => time(),
                     /// @todo
-                    'response_status' => "200",
+                    'response_status' => self::$returnCode,
                     'response_size' => self::$outputSize,
                     'counters' => $values
                 ) ) );
@@ -575,10 +591,14 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    /** Handling of time measurements whe eZDebug is off **/
+    /** Handling of time measurements when eZDebug is off **/
 
     public static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
     {
+        // allow 3rd party code to leave in perf. measuring hooks with minimal speed loss
+        if ( !self::$enabled )
+            return false;
+
         $startTime = microtime( true );
         if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
@@ -597,6 +617,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
 
     public static function accumulatorStop( $val )
     {
+        // allow 3rd party code to leave in perf. measuring hooks with minimal speed loss
+        if ( !self::$enabled )
+            return false;
+
         $stopTime = microtime( true );
         if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
@@ -624,6 +648,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         return self::$timeAccumulatorList;
     }
 
+    public static function disable()
+    {
+        self::$enabled = false;
+    }
 }
 
 ?>

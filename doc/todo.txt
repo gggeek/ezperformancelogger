@@ -1,13 +1,13 @@
 perf logging:
-. find a way to better trace data when running in 5.xLS:
-  . current data is lower than expected, as we do not measure code run outside LS
+. improve integration with eZ5 and eZ-LS
+  . make all loggers which rewrite output actually work
+  . all other stuff... quite a lot is left
 . self-contained db logging
   . direct-to-db logging
   . import parsed data to db (and aggregate it to a data-cube)
   . module/views to display data from db
   . fetch functions to retrieve data when it's in the db
-. more kpis in std logger
-  . cluster queries => see dedicated logger class overriding ezdfs one
+. more KPIs in std logger
   . allow module_result/* and content_info/* for ezp >= 5.0
 . more logging targets
   . allow using snmp traps as target
@@ -40,7 +40,7 @@ xhprof:
 . push to upstream xhprof lib all our patches
 . avoid fatal error if xhprof is off and startlogging is called
 . show warning in gui if xhprof is disabled
-. include xhprof.io / rewrite GUI on top of it
+. include xhprof.io / rewrite GUI on top of it (then declare it as dependency in composer.json)
 
 
 munin:

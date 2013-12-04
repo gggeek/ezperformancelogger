@@ -7,5 +7,10 @@
     "minimum-stability": "dev",
     "require": {
         "ezsystems/ezpublish-legacy-installer": "*"
+    },
+
+    "suggest": {
+        "monolog/monolog": "can be used to log the measured performance data to many different media"
+        "php-xhprof": "a good profiler for php, designed to be fast enough to be used in production settings"
     }
 }

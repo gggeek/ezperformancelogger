@@ -11,10 +11,24 @@
  */
 interface eZPerfLoggerTimeMeasurer
 {
+    /**
+     * @param $id
+     * @param bool $group
+     * @param bool $label
+     * @param null $data
+     * @return null
+     */
     public static function accumulatorStart( $id, $group = false, $label = false, $data = null  );
 
+    /**
+     * @param $id
+     * @return null
+     */
     public static function accumulatorStop( $id );
 
+    /**
+     * @return array
+     */
     public static function TimeAccumulatorList();
 }
 
