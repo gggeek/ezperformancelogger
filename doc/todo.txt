@@ -53,5 +53,6 @@ munin:
 . munin multigraph to zoom in on single urls?
 
 
-. support other tools: cacti, collectd (see http://collectd.org/documentation/manpages/collectd-exec.5.shtml), dim_stat, mrtg, ganglia, ...
+other tools:
+. support cacti, collectd (see http://collectd.org/documentation/manpages/collectd-exec.5.shtml), dim_stat, mrtg, ganglia, ...
   see http://dimitrik.free.fr/blog/archives/09-01-2012_09-30-2012.html#149

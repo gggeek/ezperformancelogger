@@ -559,7 +559,6 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             case 'logfile':
             case 'syslog':
                 /// same format as Apache "combined" by default
-                /// @todo it's not always a 200 ok response...
                 $size = self::$outputSize;
                 if ( $size == 0 )
                     $size = '-';
