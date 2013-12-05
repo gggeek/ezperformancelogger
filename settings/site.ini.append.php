@@ -30,6 +30,8 @@ Listeners[]=response/preoutput@eZPerfLogger::preoutput
 # (those are detailed in ezperformancelogger.ini)
 
 [DatabaseSettings]
+# ONLY UNCOMMENT ONE LINE
+# NB: for eZP 5.0 and later, replace the 'ezmysqli' key below with 'mysql'
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing45DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing46DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing47DB

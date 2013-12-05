@@ -10,6 +10,7 @@
 # given in classes/tracers/4.x, and create your own
 
 [ClusteringSettings]
+# ONLY UNCOMMENT ONE LINE
 #FileHandler=eZDFSTracing45FileHandler
 #FileHandler=eZDFSTracing46FileHandler
 #FileHandler=eZDFSTracing47FileHandler
@@ -17,6 +18,7 @@
 #FileHandler=eZDFSTracing51FileHandler
 
 [eZDFSClusteringSettings]
+# ONLY UNCOMMENT ONE LINE
 #DBBackend=eZDFSFileHandlerTracing45MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing46MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing47MySQLiBackend

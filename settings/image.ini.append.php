@@ -8,6 +8,7 @@
 # code given in classes/tracers/4.x, and create your own
 
 [ImageMagick]
+# ONLY UNCOMMENT ONE LINE
 #Handler=eZImageTracing45ShellFactory
 #Handler=eZImageTracing46ShellFactory
 #Handler=eZImageTracing47ShellFactory
