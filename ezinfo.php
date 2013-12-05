@@ -5,7 +5,7 @@ class eZperformanceloggerInfo
     {
         return array( 'Name' => "<a href=\"http://projects.ez.no/ezperformancelogger\">ezperformancelogger</a>",
                       'Version' => "0.9-dev",
-                      'Copyright' => "Copyright (C) 2010-2012 Gaetano Giunta",
+                      'Copyright' => "Copyright (C) 2010-2013 eZ Systems AS",
                       'License' => "GNU General Public License v2.0",
                       '3rdparty_software' =>
                             array ( 'name' => 'XHProf',

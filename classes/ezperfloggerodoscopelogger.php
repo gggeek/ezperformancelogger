@@ -5,7 +5,7 @@
  * rewriting on its own, to be able to also add custom params for the <noscript> tag
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2012
+ * @copyright (C) eZ Systems AS 2012-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 

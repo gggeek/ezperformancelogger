@@ -1,6 +1,6 @@
 {**
  * @author G. Giunta
- * @copyright (C) G. Giunta 2013
+ * @copyright (C) eZ Systems AS 2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo fix height of iframe using css or js

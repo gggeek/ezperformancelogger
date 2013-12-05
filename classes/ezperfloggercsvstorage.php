@@ -5,7 +5,7 @@
  * The idea is to store data in a format more friendly to spreadsheets than the web server access log
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogParser

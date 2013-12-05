@@ -4,7 +4,7 @@
  *
  * @see http://pinba.org/wiki/Manual:PHP_extension
  * @author G. Giunta
- * @copyright (C) G. Giunta 2011 - 2013
+ * @copyright (C) eZ Systems AS 2011 - 2013
  */
 
 class pinba

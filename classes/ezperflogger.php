@@ -3,14 +3,16 @@
  * The class implementing most of the logic of performance logging:
  * - it is registered as an 'output filter' class that does not filter anything, but triggers
  *   perf. data measurement and logging at the end of page execution
- * - it implements the 2 interfaces that we use to divide the workflow in: provider, logger
- * - it also implements methods allowing other code to directly record measured perf data,
- *   to parse perf-data from Apache-formatted log files, and to create Apache-formatted logs
+ * - for eZP 5.0 and later (LS only), where output filters are removed, the triggering of perf. data measurement
+ *   and logging is done via the event system
+ * - it implements the 2 interfaces that we use to divide the workflow in: provider, logger.
+ *   In other words, it supports a lot of default KPIs and logging methods
+ * - it also implements methods allowing other code to easily record measured perf data, and various utility functions
  *
- * @todo !important separate the logger and provider parts in separate classes
+ * @todo !important separate the logger, provider, utility parts in separate classes
  *
  * @author G. Giunta
- * @copyright (C) G. Giunta 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2013
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -32,8 +34,12 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * is set to be logged in TrackVars.
      * Note that $value should be an integer/float by preference, as some loggers
      * might have problems with strings containing spaces, commas or other special chars
+     *
      * @param string $varName
      * @param mixed $value
+     *
+     * @deprecated it is now recommended to set up a class of your own as VariableProvider, and let the
+     *             extension call its measure() method
      */
     static public function recordValue( $varName, $value )
     {
@@ -42,6 +48,11 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
 
     /**
      * Record a list of values associated with a set of variables in a single call
+     *
+     * @see recordValue
+     *
+     * @deprecated it is now recommended to set up a class of your own as VariableProvider, and let the
+     *             extension call its measure() method
      */
     static public function recordValues( array $vars )
     {
@@ -50,6 +61,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             self::$custom_variables[$varName] = $value;
         }
     }
+
+    /*** Methods to be hooked up to eZ page execution flow ***/
 
     /**
      * This method is registered to be executed at end of page execution. It does
@@ -118,10 +131,12 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         return $output;
     }
 
+    /*** Other methods **/
+
     /**
      * Courtesy method to allow callers to go through cleanup() calls many times; needed for eZP 5.x and proper
      * tracing of redirecting pages.
-     * Note that this by default only disables collecting/displaying data, not measuring timing points.
+     * Note that this by default only disables collecting/displaying data, it does not disable measuring timing points.
      * If you really want not to measure or log anything, pass TRUE as parameter.
      */
     static public function disable( $deactivate=false )
@@ -244,7 +259,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    /*** Handling of the perf variables this class can measure natively. These methods should be protected and not used by external code  ***/
+    /*** Handling of the perf variables this class can measure natively  ***/
 
     /**
      * Note: this list will be "untrue" when some other php code has called eZPerfLogger::recordVale(),
@@ -288,6 +303,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * values for ALL variables it supports, but only for the ones it knows will
      * be logged.
      * @param string $output
+     * @param $returnCode
      * @return array
      */
     static public function measure( $output, $returnCode=null )
@@ -406,6 +422,8 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         return $out;
     }
 
+    /*** Some utility methods relied-upon by other classes ***/
+
     /**
      * Encapsulates retrieval of module_result data, to make it available globally,
      * across all eZP versions.
@@ -484,7 +502,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    /*** Handling the log targets this class can use. These methods should be protected and not used by external code ***/
+    /*** Handling the log targets this class provides support for ***/
 
     /**
      * This method gets called by self::filter()
@@ -596,7 +614,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    /** Handling of time measurements when eZDebug is off **/
+    /*** Handling of time measurements when eZDebug is off - methods useful to custom code wishing to add its own timing points ***/
 
     public static function accumulatorStart( $val, $group = false, $label = false, $data = null  )
     {

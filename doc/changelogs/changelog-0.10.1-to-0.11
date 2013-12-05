@@ -32,3 +32,5 @@ changelog from version 0.10.1 to 0.11 - released 2013.12.xx
 
 - BC BREAK: if you are using the VariableProviders coming from the extension, they have been renamed and/or the variables
             they provide have been shifted around. Check ezperformancelogger.ini for details and adapt your config accordingly
+
+- updated license with proper copyright assignment to eZ Systems AS
