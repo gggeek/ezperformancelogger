@@ -65,36 +65,39 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     /*** Methods to be hooked up to eZ page execution flow ***/
 
     /**
-     * This method is registered to be executed at end of page execution. It does
+     * This method is meant to be registered for execution at end of page execution. It does
      * the actual logging of the performance variables values according to the
      * configuration in ezperformancelogger.ini, as well as the xhprof profile
      * dumping.
-     * When xhprof is enabled, an html comment is added to page output
+     * When xhprof is enabled, it adds an html comment to page output which can be used to link to pages displaying
+     * profiling information
      * (this method runs before debug output is added to it, so we can not add it there)
      */
     static public function filter( $output, $returnCode=null )
     {
-        self::$has_run = true;
-
-        // perf logging: measure variables and log them according to configuration
-        $values = self::getValues( true, $output, $returnCode );
-        self::logIfNeeded( $values, $output );
-
-        // profiling
-        if ( eZXHProfLogger::isRunning() )
+        if ( self::$activated )
         {
-            eZXHProfLogger::stop();
-        }
-        if ( eZPerfLoggerINI::variable( 'XHProfSettings', 'AppendXHProfTag' ) == 'enabled' && $runs = eZXHProfLogger::runs() )
-        {
-            $xhtag = "<!-- XHProf runs: " . implode( ',', $runs ) . " -->";
-            $output = preg_replace( "#</body>#", $xhtag . '</body>', $output, -1, $count );
-            if ( $count == 0 )
+            self::$has_run = true;
+
+            // perf logging: measure variables and log them according to configuration
+            $values = self::getValues( true, $output, $returnCode );
+            self::logIfNeeded( $values, $output );
+
+            // profiling
+            if ( eZXHProfLogger::isRunning() )
             {
-                $output .= $xhtag;
+                eZXHProfLogger::stop();
+            }
+            if ( eZPerfLoggerINI::variable( 'XHProfSettings', 'AppendXHProfTag' ) == 'enabled' && $runs = eZXHProfLogger::runs() )
+            {
+                $xhtag = "<!-- XHProf runs: " . implode( ',', $runs ) . " -->";
+                $output = preg_replace( "#</body>#", $xhtag . '</body>', $output, -1, $count );
+                if ( $count == 0 )
+                {
+                    $output .= $xhtag;
+                }
             }
         }
-
         return $output;
     }
 
@@ -102,18 +105,19 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This function can be called at the end of every page, including the ones
      * that end via redirect (and thus do not call "filter").
      * In order to do so, you need to call at some point in your controller
-     * eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+     *   eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+     * NB: it only fires once, even if called many times
      */
-    static public function cleanup( $output='' )
+    static public function cleanup( $output='', $returnCode=null )
     {
         if ( !self::$has_run )
         {
             // nb: since the adding of this function as cleanup handler is not automatically
-            // disabled just by disabling this extension in site.ini (whereas 'filter' is),
+            // disabled just by disabling this extension in site.ini (whereas 'filter' and 'event' are),
             // we just check here if extension is enabled or not.
             if ( self::isEnabled() )
             {
-                 self::filter( $output );
+                 self::filter( $output, $returnCode );
             }
         }
     }
@@ -121,6 +125,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     /**
      * This function can be registered as event handler for response/preoutput
      * (mandatory since ezp 5.0 LS and later, as OutputFilter has been removed).
+     * NB: it only fires once, even if called many times
      */
     static public function preoutput( $output, $returnCode=null )
     {
@@ -134,7 +139,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     /*** Other methods **/
 
     /**
-     * Courtesy method to allow callers to go through cleanup() calls many times; needed for eZP 5.x and proper
+     * Courtesy method to allow callers to go through cleanup() calls many times; helpful f.e. for eZP 5.x and proper
      * tracing of redirecting pages.
      * Note that this by default only disables collecting/displaying data, it does not disable measuring timing points.
      * If you really want not to measure or log anything, pass TRUE as parameter.
@@ -161,11 +166,15 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
-    /// @todo fix to run from eZ5 context
+    /**
+     * Returns true when extension is active
+     * @todo fix to run from eZ5 context
+     * @todo !important rename to isactive ;-)
+     */
     static public function isEnabled()
     {
         /// @todo look if eZExtension or similar class already has similar code, as we miss ActiveAccessExtensions here
-        return self::$activated && in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
+        return in_array( 'ezperformancelogger', eZPerfLoggerINI::variable( 'ExtensionSettings', 'ActiveExtensions', 'site.ini' ) );
     }
 
     /**
