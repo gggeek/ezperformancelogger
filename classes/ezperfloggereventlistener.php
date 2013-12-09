@@ -41,7 +41,7 @@ class ezPerfLoggerEventListener implements eZPerfLoggerProvider
 
     // support for the interface we expose
 
-    static public function measure( $output )
+    static public function measure( $output, $returnCode=null )
     {
         return self::$events;
     }
