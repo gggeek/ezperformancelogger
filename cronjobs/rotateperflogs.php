@@ -31,5 +31,3 @@ if ( $ini->variable( 'csvSettings', 'RotateFiles' ) == 'enabled' )
 
 if ( !$isQuiet )
     $cli->output( "Log files rotated" );
-
-?>

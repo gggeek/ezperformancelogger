@@ -14,5 +14,3 @@ interface eZPerfLoggerLogParser
 
     static public function setOptions( array $opts );
 }
-
-?>

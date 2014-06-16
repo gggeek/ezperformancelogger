@@ -256,5 +256,3 @@ class prtbfr
         return self::$_endianness === self::BIG_ENDIAN;
     }
 }
-
-?>

@@ -50,5 +50,3 @@ class eZPerfLoggerOdoscopeLogger implements eZPerfLoggerLogger
         return $text;
     }
 }
-
-?>

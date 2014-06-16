@@ -31,5 +31,3 @@ interface eZPerfLoggerTimeMeasurer
      */
     public static function TimeAccumulatorList();
 }
-
-?>

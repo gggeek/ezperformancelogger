@@ -154,5 +154,3 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
 
     }
 }
-
-?>

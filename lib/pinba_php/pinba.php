@@ -455,5 +455,3 @@ class pinba
 
 // try to start time measurement as soon as we can
 pinba::init();
-
-?>

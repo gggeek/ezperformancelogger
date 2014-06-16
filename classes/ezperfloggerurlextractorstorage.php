@@ -74,5 +74,3 @@ class eZPerfLoggerUrlExtractorStorage implements eZPerfLoggerStorage
         self::$options = array_merge( self::$options, $opts );
     }
 }
-
-?>

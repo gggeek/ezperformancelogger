@@ -26,5 +26,3 @@ interface eZPerfLoggerProvider
      */
     public static function supportedVariables();
 }
-
-?>

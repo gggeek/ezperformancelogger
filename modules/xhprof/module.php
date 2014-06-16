@@ -41,5 +41,3 @@ $ViewList['typeahead.php'] = array(
 $FunctionList = array(
     'view' => array()
 );
-
-?>

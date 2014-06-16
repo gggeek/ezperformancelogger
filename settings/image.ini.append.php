@@ -15,4 +15,3 @@
 #Handler=eZImageTracing50ShellFactory
 #Handler=eZImageTracing51ShellFactory
 
-*/ ?>

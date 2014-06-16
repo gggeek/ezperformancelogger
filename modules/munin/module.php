@@ -20,5 +20,3 @@ $ViewList['display'] = array(
 $FunctionList = array(
     'view' => array()
 );
-
-?>

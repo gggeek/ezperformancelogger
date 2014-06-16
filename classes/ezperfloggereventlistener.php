@@ -56,5 +56,3 @@ class ezPerfLoggerEventListener implements eZPerfLoggerProvider
         return $desc;
     }
 }
-
-?>

@@ -11,4 +11,3 @@ LinkNames[munin]=Munin monitoring
 Links[graphite]=graphite/display
 LinkNames[graphite]=Graphite monitoring
 
-*/ ?>

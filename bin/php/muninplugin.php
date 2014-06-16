@@ -208,5 +208,3 @@ switch ( $command )
 }
 
 $script->shutdown();
-
-?>

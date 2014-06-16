@@ -78,5 +78,3 @@ if ( $script->verboseOutputLevel() > 0 )
     $cli->output( "Perf counters have been updated\n" );
 
 $script->shutdown();
-
-?>

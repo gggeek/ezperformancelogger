@@ -59,5 +59,3 @@ class eZPerfLoggerMonologLogger implements eZPerfLoggerLogger
         }
     }
 }
-
-?>

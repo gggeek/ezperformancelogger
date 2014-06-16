@@ -11,4 +11,4 @@ Scripts[]=removexhprofdata.php
 
 [CronjobPart-rotateperflogs]
 Scripts[]=rotateperflogs.php
-*/ ?>
+

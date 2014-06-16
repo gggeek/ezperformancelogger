@@ -132,5 +132,3 @@ foreach ( $stats as $idx => $data )
 }
 
 $script->shutdown();
-
-?>

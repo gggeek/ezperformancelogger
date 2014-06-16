@@ -10,5 +10,3 @@ $eZTemplateOperatorArray[] =
         'class' => 'eZPerformanceLoggerOperators',
         'operator_names' => array_keys( eZPerformanceLoggerOperators::$operators )
     );
-
-?>

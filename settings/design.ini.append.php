@@ -18,4 +18,3 @@ BackendJavaScriptList[]=ezxhprof.js
 # Make sure you have jQuery loaded, either via ezjscore or some other means
 #JavaScriptList[]=ezxhprof.js
 
-*/ ?>

@@ -48,5 +48,3 @@ if ( $ini->variable( 'csvSettings', 'RotateFiles' ) == 'enabled' )
 }
 
 $script->shutdown();
-
-?>

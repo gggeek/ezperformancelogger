@@ -22,5 +22,3 @@ interface eZPerfLoggerFilter
      */
     public static function shouldLog( array $data, $output );
 }
-
-?>

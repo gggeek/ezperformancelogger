@@ -23,5 +23,3 @@ interface eZPerfLoggerStorage
      */
     public static function insertStats( array $data );
 }
-
-?>

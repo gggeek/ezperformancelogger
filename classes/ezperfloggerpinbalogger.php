@@ -91,5 +91,3 @@ class eZPerfLoggerPinbaLogger extends pinba implements eZPerfLoggerLogger
         return array();
     }
 }
-
-?>

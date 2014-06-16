@@ -680,5 +680,3 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
 }
-
-?>

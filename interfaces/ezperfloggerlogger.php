@@ -29,5 +29,3 @@ interface eZPerfLoggerLogger
      */
     public static function doLog( $logmethod, array $data, &$ouput );
 }
-
-?>

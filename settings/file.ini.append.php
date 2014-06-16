@@ -24,5 +24,3 @@
 #DBBackend=eZDFSFileHandlerTracing47MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing50MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing51MySQLiBackend
-
-*/?>

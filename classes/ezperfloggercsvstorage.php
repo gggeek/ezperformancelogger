@@ -89,5 +89,3 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
     {
     }
 }
-
-?>
