@@ -3,7 +3,7 @@
  * Class used to log data to Statsd.
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2013
+ * @copyright (C) eZ Systems AS 2013-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
