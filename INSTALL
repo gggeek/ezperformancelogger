@@ -46,10 +46,10 @@ For performance logging
   this is useful if you have a lot of traffic, and want to be able to see nice
   graphs, with drill-down / group / filter capability.
   Steps are:
-  a. set up a graphite+statsd server
-  b. set up ezperformancelogger.ini
-  c. if using ezp >= 5, add a specific template tag in your pagelayout (see provided
-     tpl in the design/admin folder in this extension)
+  I. set up a graphite+statsd server
+  II. set up ezperformancelogger.ini
+  III. if using ezp >= 5, add a specific template tag in your pagelayout (see provided
+       tpl in the design/admin folder in this extension)
   The main difference between graphite and other KPI graphing tools is the extensive
   support for grouping data. To get most value out of it, the extension "rewrites" the
   names of the measured KPIs when sending them to statsd, injecting by default the
@@ -75,25 +75,46 @@ For performance logging
 
 5. to log db performances with Debug Output disabled, uncomment the
    appropriate line in settings/site.ini.append.php and use one of the db
-   connectors provided by the extension (currently only for eZP 4.5 to 4.7 on mysqli)
+   connectors provided by the extension (currently only for eZP 4.4 to 5.1 on mysqli)
+
+   NB: this works unless you have the same value set in a configuration file
+   with higher priority, such as settings/override/site.ini.append.php, in
+   which case you need to edit that one. NB: do not forget to undo your changes
+   before you disable the extension, if you do.
 
 
-6. to log cluster-db performances with Debug Output disabled, uncomment the
+6. to log cluster-db performances with Debug Output disabled, uncomment the two
    appropriate lines in settings/file.ini.append.php and use one of the cluster db
-   connectors provided by the extension (currently only for eZP 4.5 to 4.7 on mysqli)
+   connectors provided by the extension (currently only for eZP 4.4 to 5.1 on mysqli)
+
+   This works unless unless you have the same values set in a configuration file
+   with higher priority, such as settings/override/file.ini.append.php, which is
+   quite common with cluster configuration. In this case, edit the values in the
+   higher-priority file. NB: do not forget to undo your changes before you disable
+   the extension, if you do.
 
 
-7. to log performance data even on web pages which end prematurely or redirect
+7. to log performance data from image conversion using Imagemagick, uncomment the
+    appropriate line in settings/image.ini.append.php and use one of the handlers
+    provided by the extension.
+
+   NB: this works unless you have the same value set in a configuration file
+   with higher priority, such as settings/override/image.ini.append.php, in
+   which case you need to edit that one. NB: do not forget to undo your changes
+   before you disable the extension, if you do.
+
+
+8. to log performance data even on web pages which end prematurely or redirect
    you need to patch the index.php file and add somewhere the following line:
       eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
    a good candidate location is next to the existing eZExecution::addCleanupHandler call.
    For eZPublish 5.x, patch ezpkernelweb.php instead of index.php;
-  please note that in this case the measured data can be lower than expected,
-  you should also patch ezpkernelweb::runCallback() to avoid measuring data
-  via calls to eZPerfLogger::disable() and reenable()
+   please note that in this case the measured data can be lower than expected,
+   you should also patch ezpkernelweb::runCallback() to avoid measuring data
+   via calls to eZPerfLogger::disable() and reenable()
 
 
-8. you can also decide not to log data for every single request received, but only for
+9. you can also decide not to log data for every single request received, but only for
    some of them. To this end, use the LogFilters option in ezperformancelogger.ini.
    Filters provided within the extension allow to log slow pages, memory-hungry pages,
    or a random subset of all pages.
@@ -144,6 +165,9 @@ For profiling
    lines corresponding to your eZ version
 
 5. view any website page: a link to its profiling info is at the bottom of the debug output
+
+   Take care that there are no javascript errors related to jquery or jquery plugins.
+   If any errors happen, it is up to you to make sure you properly load xhprof.js
 
 6. in the Admin Interface, in the Setup tab, you will find a link to a page listing
    all available profiling data for viewing.

@@ -1,4 +1,4 @@
-changelog from version 0.10.1 to 0.11 - released 2013.12.xx
+changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 
 * New features
 
@@ -34,3 +34,5 @@ changelog from version 0.10.1 to 0.11 - released 2013.12.xx
             they provide have been shifted around. Check ezperformancelogger.ini for details and adapt your config accordingly
 
 - updated license with proper copyright assignment to eZ Systems AS
+
+- the javascript loading in frontend design for xhprof-measurement is disabled by default, as it can break some sites

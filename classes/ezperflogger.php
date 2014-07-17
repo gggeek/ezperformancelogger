@@ -2,9 +2,9 @@
 /**
  * The class implementing most of the logic of performance logging:
  * - it is registered as an 'output filter' class that does not filter anything, but triggers
- *   perf. data measurement and logging at the end of page execution
+ *   perf. data measurement and logging at the end of page execution (method: filter)
  * - for eZP 5.0 and later (LS only), where output filters are removed, the triggering of perf. data measurement
- *   and logging is done via the event system
+ *   and logging is done via the event system (method: preoutput)
  * - it implements the 2 interfaces that we use to divide the workflow in: provider, logger.
  *   In other words, it supports a lot of default KPIs and logging methods
  * - it also implements methods allowing other code to easily record measured perf data, and various utility functions
