@@ -36,3 +36,6 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 - updated license with proper copyright assignment to eZ Systems AS
 
 - the javascript loading in frontend design for xhprof-measurement is disabled by default, as it can break some sites
+
+- fixed the Pinba encoding library used for logging to Pinba servers
+ 
