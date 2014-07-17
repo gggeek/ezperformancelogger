@@ -292,7 +292,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             $out['xhkprof_runs'] = 'string (csv list of identifiers)';
         }
-        if ( isset( $_SERVER['UNIQUE_ID '] ) )
+        if ( isset( $_SERVER['UNIQUE_ID'] ) )
         {
             $out['unique_id'] = 'string (unique per-request identifier)';
         }
