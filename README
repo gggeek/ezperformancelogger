@@ -88,13 +88,16 @@ Notes:
 - eZ pages which end in a redirection or terminate execution during the view will
   not log data by default. To force even those pages to be measured you will have
   to patch the index.php file and add the following line to it:
-      eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+      eZPerfLogger::registerShutdownPerfLogger();
   A good candidate location is next to the existing eZExecution::addCleanupHandler call.
 
   For eZ 5.x this is in ezpkernelweb.php instead, around line 191;
   please note that in this case the measured data can be lower than expected,
   you should also patch ezpkernelweb::runCallback() to avoid measuring data
-  via calls to eZPerfLogger::disable() and reenable()
+  via calls to eZPerfLogger::disable() and reenable().
+
+  If you do now want to hack the kernel and are using the customized db connector, you
+  just need instead to set AlwaysRegisterShutdownPerfLogger=enabled in ezperformacelogger.ini
 
 
 

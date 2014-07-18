@@ -105,7 +105,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This function can be called at the end of every page, including the ones
      * that end via redirect (and thus do not call "filter").
      * In order to do so, you need to call at some point in your controller
-     *   eZPerfLogger::registerShutdownPerfLoggerIfNeeded();
+     *   eZPerfLogger::registerShutdownPerfLogger();
      * NB: it only fires once, even if called many times
      */
     static public function cleanup( $output='', $returnCode=null )

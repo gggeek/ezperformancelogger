@@ -106,12 +106,19 @@ For performance logging
 
 8. to log performance data even on web pages which end prematurely or redirect
    you need to patch the index.php file and add somewhere the following line:
-      eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+      eZPerfLogger::registerShutdownPerfLogger();
    a good candidate location is next to the existing eZExecution::addCleanupHandler call.
    For eZPublish 5.x, patch ezpkernelweb.php instead of index.php;
    please note that in this case the measured data can be lower than expected,
    you should also patch ezpkernelweb::runCallback() to avoid measuring data
-   via calls to eZPerfLogger::disable() and reenable()
+   via calls to eZPerfLogger::disable() and reenable().
+
+   If you are using a custom database connector to measure database performances
+   (see point 5 above), you can obtain the same result without hacking the kernel.
+   Just set
+       AlwaysRegisterShutdownPerfLogger=enabled
+   in ezperformacelogger.ini.
+   Note that if you do so, you will automatically measure all cli scripts you execute.
 
 
 9. to log performance data of publication events when using asynchronous publication,
