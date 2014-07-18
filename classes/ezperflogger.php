@@ -326,6 +326,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             $out['content/nodeid'] = 'int';
         }
+        $out['_server/*'] = 'string (depending on the specific variable)';
         return $out;
     }
 
@@ -416,6 +417,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     $out[$var] = implode( ',', eZXHProfLogger::runs() );
                     break;
 
+                case 'user_id':
+                    $out[$var] = eZUser::currentUser()->attribute( 'contentobject_id' );
+                    break;
+
                 case 'unique_id':
                     $out[$var] = $_SERVER['UNIQUE_ID'];
                     break;
@@ -456,6 +461,15 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                         {
                             $out[$var] = -1;
                         }
+                        break;
+                    }
+
+                    // everything in $_SERVER
+                    if ( strpos( $var, '_server/' ) === 0 )
+                    {
+                        $parts = explode( '/', $var, 2 );
+                        $val = @$_SERVER[$parts[1]];
+                        $out[$var] = $val;
                         break;
                     }
             }
@@ -562,10 +576,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         switch( $method )
         {
             case 'apache':
-                foreach( $values as $varname => $value )
+                foreach( $values as $varName => $value )
                 {
                     /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                    apache_note( $varname, $value );
+                    apache_note( $varName, $value );
                 }
                 break;
 
@@ -644,7 +658,6 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     'url' => isset( $_SERVER["REQUEST_URI"] ) ? $_SERVER["REQUEST_URI"] : $_SERVER["PHP_SELF"],
                     'ip' => is_callable( 'eZSys::clientIP' ) ? eZSys::clientIP() : eZSys::serverVariable( 'REMOTE_ADDR' ), // ezp 4.5 or less
                     'time' => time(),
-                    'request_method' => @$_SERVER["REQUEST_METHOD"],
                     'response_status' => self::$returnCode,
                     'response_size' => self::$outputSize,
                     'counters' => $values

@@ -12,13 +12,6 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
   . to still have the extension working perfectly in a pure-LS installation
   . to avoid as much as possible context switches within the extension itself, to avoid perf losses
 
-- A new parameter has been added to methods ezPerflogger::disable() ( and ezPerflogger::reenable() as well ).
-  It prevents the extension from measuring any accumulator timing point.
-  It is recommended to use it when
-  . your code adds custom KPI data, measured via calls to eZPerfLogger::accumulatorStart()/Stop()
-  . you do not want to log performance data at all any more, but find disabling/removing ezperformancelogger too cumbersome
-  A good place where to put such call is in config.php
-
 - It is now possible to properly trace the http response code (but this still does not happen automatically out of the box)
 
 - It is now easier to properly trace the web pages which end up wth redirects, without hacking the kernel.
@@ -26,6 +19,20 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
     1. have enabled one of the tracing db connectors in site.ini.append.php
     2. set AlwaysRegisterShutdownPerfLogger=enabled in ezperformancelogger.ini
   Note that this will also enabled logging of cli scripts
+
+- It is now possible to trace the eZ User id of the current user (as at the end of page execution).
+  This can help f.e. when troubleshooting performance problems pertaining to a specific session
+
+- It is now possible to trace all variables from the $_SERVER superglobal.
+  Note that tracing string variables (as opposed to integers/floats) might lead to problems with some log writers
+
+- A new parameter has been added to methods ezPerflogger::disable() ( and ezPerflogger::reenable() as well ).
+  It prevents the extension from measuring any accumulator timing point.
+  It is recommended to use it when
+  . your code adds custom KPI data, measured via calls to eZPerfLogger::accumulatorStart()/Stop()
+  . you do not want to log performance data at all any more, but find disabling/removing ezperformancelogger too cumbersome
+  A good place where to put such call is in config.php
+
 
 * Bugfixes
 
@@ -52,4 +59,4 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 
 - updated license with proper copyright assignment to eZ Systems AS
 
-- the default CSV log includes the http request method
+- the list of variables tracked by default includes the http request method (GET/POST/etc)

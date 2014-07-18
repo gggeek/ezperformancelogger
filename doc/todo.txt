@@ -24,7 +24,8 @@ perf logging:
 
 . script to wget and measure a whole site
 . add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
-. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate, site crawling via httrack + graphing with excel, ...)
+. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate,
+  site crawling via httrack + graphing with excel, logstash integration, ...)
 
 . scripts to coalesce csv files with a given time slice (eg. 1 data point every N minutes) to facilitate producing graphs
 . use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...
