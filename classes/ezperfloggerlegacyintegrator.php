@@ -25,7 +25,7 @@ class eZPerfLoggerLegacyIntegrator
     }
 
     /**
-     * We do runtikme checking to avoid compilation problems in pure ez4 stacks
+     * We do runtime checking to avoid compilation problems in pure ez4 stacks
      * @param Symfony\Component\HttpKernel\HttpKernelInterface $kernel
      * @throws RuntimeException
      */
