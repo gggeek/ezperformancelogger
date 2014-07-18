@@ -105,7 +105,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This function can be called at the end of every page, including the ones
      * that end via redirect (and thus do not call "filter").
      * In order to do so, you need to call at some point in your controller
-     *   eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+     *   eZPerfLogger::registerShutdownPerfLoggerIfNeeded();
      * NB: it only fires once, even if called many times
      */
     static public function cleanup( $output='', $returnCode=null )
@@ -134,6 +134,31 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             return self::filter( $output, $returnCode );
         }
         return $output;
+    }
+
+    /**
+     * Registers the 'cleanup' function as shutdown handler, trying to do it only once
+     *
+     * @param bool $onlyIfConfigured when true, the registration only happens subject to an ini setting
+     * @return bool false if registration is aborted, true if the handler is (or was already) registered
+     */
+    static public function registerShutdownPerfLogger( $onlyIfConfigured = false )
+    {
+        if ( $onlyIfConfigured && eZPerfLoggerINI::variable( 'GeneralSettings', 'AlwaysRegisterShutdownPerfLogger' ) !== 'enabled' )
+        {
+            return false;
+        }
+
+        foreach( eZExecution::cleanupHandlers() as $handler )
+        {
+            if ( $handler == array( __CLASS__, 'cleanup' ) )
+            {
+                return true;
+            }
+        }
+
+        eZExecution::addCleanupHandler( array( __CLASS__, 'cleanup' ) );
+        return true;
     }
 
     /*** Other methods **/
@@ -185,9 +210,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @return array
      * @too !important split method in 2 methods, with one public and one protected?
      */
-    public static function getValues( $domeasure, $output, $returnCode=null )
+    public static function getValues( $doMeasure, $output, $returnCode=null )
     {
-        if ( $domeasure )
+        if ( $doMeasure )
         {
             // look up any perf data provider, and ask each one to give us its values
             foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
@@ -323,9 +348,17 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         // Also using ga / piwik logs do alter $output, making length calculation in doLog() unreliable
         /// @todo this way of passing data around is not really beautiful...
         self::$outputSize = strlen( $output );
-        if ( $returnCode != null )
+        if ( $returnCode !== null )
         {
             self::$returnCode = (int) $returnCode;
+        }
+        else
+        {
+            // for cli scripts, set default response status to 0 instead of 200
+            if ( eZSys::isShellExecution() )
+            {
+                self::$returnCode = 0;
+            }
         }
 
         $out = array();
@@ -608,10 +641,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 /// @todo log error if storage class does not implement correct interface
                 // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
                 call_user_func( array( $storageClass, 'insertStats' ), array( array(
-                    'url' => $_SERVER["REQUEST_URI"],
+                    'url' => isset( $_SERVER["REQUEST_URI"] ) ? $_SERVER["REQUEST_URI"] : $_SERVER["PHP_SELF"],
                     'ip' => is_callable( 'eZSys::clientIP' ) ? eZSys::clientIP() : eZSys::serverVariable( 'REMOTE_ADDR' ), // ezp 4.5 or less
                     'time' => time(),
-                    /// @todo
+                    'request_method' => @$_SERVER["REQUEST_METHOD"],
                     'response_status' => self::$returnCode,
                     'response_size' => self::$outputSize,
                     'counters' => $values
@@ -672,6 +705,14 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             self::$timeAccumulatorList[$val]['maxtime'] = $thisTime;
         }
+    }
+
+    /**
+     * Reset all accumulators so far
+     */
+    public static function accumulatorReset()
+    {
+        self::$timeAccumulatorList = array();
     }
 
     public static function timeAccumulatorList()

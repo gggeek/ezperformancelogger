@@ -34,7 +34,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
         {
             fwrite( $fp, "Timestamp{$separator}" );
             fwrite( $fp, implode( $separator, eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) ) );
-            fwrite( $fp, "{$separator}Date{$separator}IP Address{$separator}Response Status{$separator}Response size{$separator}URL\n" );
+            fwrite( $fp, "{$separator}Date{$separator}IP Address{$separator}Response Status{$separator}Response size{$separator}Request Method{$separator}URL\n" );
         }
         foreach( $data as $line )
         {
@@ -43,6 +43,7 @@ class eZPerfLoggerCSVStorage implements eZPerfLoggerStorage, eZPerfLoggerLogPars
             $data[] = $line['ip'];
             $data[] = $line['response_status'];
             $data[] = $line['response_size'];
+            $data[] = $line['request_method'];
             $data[] = $quotes . str_replace( $quotes, $quotes . $quotes, $line['url'] ). $quotes;
             fwrite( $fp, implode( $separator, $data ) . "\n" );
         }

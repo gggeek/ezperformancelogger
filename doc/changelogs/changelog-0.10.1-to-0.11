@@ -21,9 +21,26 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 
 - It is now possible to properly trace the http response code (but this still does not happen automatically out of the box)
 
+- It is now easier to properly trace the web pages which end up wth redirects, without hacking the kernel.
+  In order to do so, you need to:
+    1. have enabled one of the tracing db connectors in site.ini.append.php
+    2. set AlwaysRegisterShutdownPerfLogger=enabled in ezperformancelogger.ini
+  Note that this will also enabled logging of cli scripts
+
 * Bugfixes
 
 - revamping (cleanup and bugfixes) of most existing "tracing" handlers (db, cluster, imagemagick)
+
+- the javascript loading in frontend design for xhprof-measurement is disabled by default, as it can break some sites
+
+- fixed the Pinba encoding library used for sending logs to Pinba servers
+
+- fixed default value in a setting for logging using Monolog
+
+- when using the perf. tracing for cli scripts, log to the default csv file the script filename instead of null
+
+- an http response code of 0 is now allowed
+
 
 * Changes
 
@@ -35,8 +52,4 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 
 - updated license with proper copyright assignment to eZ Systems AS
 
-- the javascript loading in frontend design for xhprof-measurement is disabled by default, as it can break some sites
-
-- fixed the Pinba encoding library used for logging to Pinba servers
-
-- fixed default value in setting for logging using Monolog
+- the default CSV log includes the http request method

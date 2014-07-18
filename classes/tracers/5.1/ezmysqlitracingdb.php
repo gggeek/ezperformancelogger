@@ -5,6 +5,16 @@
 
 class eZMySQLiTracing51DB extends eZMySQLiDB
 {
+    /**
+     * Take advantage of the fact that db connector is always instantiated to register per logging at shutdown time
+     * @param array $parameters
+     */
+    function __construct( $parameters )
+    {
+        eZPerfLogger::registerShutdownPerfLogger( true );
+        self::eZMySQLiDB( $parameters );
+    }
+
     /*!
      \private
      Opens a new connection to a MySQL database and returns the connection

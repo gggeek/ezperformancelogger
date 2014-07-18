@@ -114,7 +114,18 @@ For performance logging
    via calls to eZPerfLogger::disable() and reenable()
 
 
-9. you can also decide not to log data for every single request received, but only for
+9. to log performance data of publication events when using asynchronous publication,
+   uncomment the lines in settings/comment.ini.append.php, then restart the async
+   publishing cli script.
+
+   NB: to log performance data of async publication events, custom handlers are injected
+   into the publishing process.
+   There is no guarantee that they will work at all if you
+   - are not on eZPublish 4.7, or
+   - have a customized async publication mechanism
+
+
+10. you can also decide not to log data for every single request received, but only for
    some of them. To this end, use the LogFilters option in ezperformancelogger.ini.
    Filters provided within the extension allow to log slow pages, memory-hungry pages,
    or a random subset of all pages.
