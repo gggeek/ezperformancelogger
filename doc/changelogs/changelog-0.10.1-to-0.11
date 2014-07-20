@@ -52,7 +52,9 @@ changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 * Changes
 
 - BC BREAK: the eZPerfLoggerProvider::measure() method signature has changed; now it takes and extra, optional
-            retcode parameter (used to trace http response status)
+            retCode parameter (used to trace http response status)
+
+- BC BREAK: the interface eZPerfLoggerTimeMeasurer acquired a new method: reset(). Used to remove accumulators
 
 - BC BREAK: if you are using the VariableProviders coming from the extension, they have been renamed and/or the variables
             they provide have been shifted around. Check ezperformancelogger.ini for details and adapt your config accordingly

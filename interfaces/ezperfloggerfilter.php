@@ -12,7 +12,7 @@
 interface eZPerfLoggerFilter
 {
     /**
-     * This method gets called by the framework for all classes regsitered in
+     * This method gets called by the framework for all classes registered in
      * LogFilters in ezperformancelogger.ini.
      * As soon as one class returns true, logging is activated
      *

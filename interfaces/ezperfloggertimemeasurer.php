@@ -30,4 +30,11 @@ interface eZPerfLoggerTimeMeasurer
      * @return array
      */
     public static function TimeAccumulatorList();
+
+    /**
+     * Resets the measuring for one timing point, or all of them (when passed NULL).
+     * @param null $id
+     * @return mixed
+     */
+    public static function accumulatorReset( $id = null );
 }

@@ -25,4 +25,15 @@ interface eZPerfLoggerProvider
      * @return array varname => type
      */
     public static function supportedVariables();
+
+    /**
+     * Not mandatory (for backwards compatibility we prefer not make it such), but recommended:
+     *
+     * public static function resetMeasures();
+     *
+     * Resets all timers/resource consumption measures.
+     * It is not called often, but might be useful to trace scripts which use f.e. forking.
+     * NB: if your tracer uses eZPerfLogger to measure execution times, it does not need to implement this call,
+     * as eZPerfLogger will clear all the timing points by itself.
+     */
 }

@@ -203,6 +203,21 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
     /**
+     * Resets all perf measurements done so far for all active providers (only the ones which have the 'resetMeasures' method)
+     */
+    public static function reset()
+    {
+        // look up any perf data provider, and ask each one to give us its values
+        foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
+        {
+            if ( is_callable( array( $measuringClass, 'resetMeasures' ) ) )
+            {
+                call_user_func( array( $measuringClass, 'resetMeasures' ) );
+            }
+        }
+    }
+
+    /**
      * Returns all the perf. values measured so far.
      * @param bool $domeasure If true, will trigger data collection from registered perf-data providers,
      *                        otherwise only data recorded via calls to recordValue(s) will be returned
@@ -307,7 +322,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             'output_size' => 'int (bytes)'
         );
         /// @todo fix to run from eZ5 context
-        if ( eZDebug::isDebugEnabled() )
+        if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
             $out['db_queries'] = 'int';
             $out['accumulators/*'] = 'float (seconds, rounded to 1msec)';
@@ -476,6 +491,17 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
 
         return $out;
+    }
+
+    /**
+     * Resets all resource measurements made so far
+     */
+    public static function resetMeasures()
+    {
+        global $scriptStartTime;
+
+        $scriptStartTime = microtime( true );
+        static::accumulatorReset();
     }
 
     /*** Some utility methods relied-upon by other classes ***/
@@ -721,11 +747,25 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
     /**
-     * Reset all accumulators so far
+     * Reset accumulators values so far: either a single one or all of them.
+     * NB: also clears the ezdebug accumulators
      */
-    public static function accumulatorReset()
+    public static function accumulatorReset( $val = null )
     {
-        self::$timeAccumulatorList = array();
+        if ( $val === null )
+        {
+            self::$timeAccumulatorList = array();
+
+            if ( eZPerfLoggerDebug::isDebugEnabled() )
+            {
+                $debug = eZDebug::instance();
+                $debug->TimeAccumulatorList = array();
+            }
+        }
+        else
+        {
+            unset( self::$timeAccumulatorList[$val] );
+        }
     }
 
     public static function timeAccumulatorList()
