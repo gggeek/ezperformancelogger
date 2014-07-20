@@ -7,3 +7,4 @@ var
 build
 dist
 pakefile.php
+pake/options-user.yaml
