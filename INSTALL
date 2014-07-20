@@ -125,7 +125,7 @@ For performance logging
    uncomment the lines in settings/comment.ini.append.php, then restart the async
    publishing cli script.
 
-   NB: to log performance data of async publication events, custom handlers are injected
+   NB: to log performance data of async publication events, custom queue handlers are injected
    into the publishing process.
    There is no guarantee that they will work at all if you
    - are not on eZPublish 4.7, or
