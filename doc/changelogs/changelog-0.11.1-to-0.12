@@ -1,0 +1,12 @@
+changelog from version 0.11 to 0.12 - released 2014.7.xx
+
+* New features
+
+- It is now possible to trace the time eZ spends extracting text from binary files for the search engine.
+  See the new settings in ezcontentsync.ini and binaryfile.ini.append.php for how to enable this.
+  NB: this only works if you are using the standard text extractors or the eztika extension.
+
+* Bugfixes
+
+
+* Changes
