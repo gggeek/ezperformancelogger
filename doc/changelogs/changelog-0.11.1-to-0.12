@@ -6,6 +6,9 @@ changelog from version 0.11 to 0.12 - released 2014.7.xx
   See the new settings in ezcontentsync.ini and binaryfile.ini.append.php for how to enable this.
   NB: this only works if you are using the standard text extractors or the eztika extension.
 
+- It is now possible to trace the time eZ spends sending mails.
+  Only available for sendail/smpt transports, for eZP 4.7
+
 * Bugfixes
 
 

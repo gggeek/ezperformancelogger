@@ -37,3 +37,8 @@ Listeners[]=response/preoutput@eZPerfLogger::preoutput
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing47DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing50DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing51DB
+
+[MailSettings]
+# ONLY UNCOMMENT ONE LINE PER PHP VERSION
+#TransportAlias[smtp]=eZSMTPTracing47Transport
+#TransportAlias[sendmail]=eZSendmailTracing47Transport
