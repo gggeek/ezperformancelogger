@@ -201,7 +201,7 @@ class eZImageTracing46ShellHandler extends eZImageShellHandler
                         $mimeTagMap[$mimeTagMapArray[0]] = $mimeTagMapArray[1];
                 }
             }
-            $handler = new eZImageTracing45ShellHandler( $name, $isEnabled,
+            $handler = new eZImageTracing46ShellHandler( $name, $isEnabled,
                                                 $outputRewriteType,
                                                 $inputMimeList, $outputMimeList,
                                                 $conversionRules, $filters, $mimeTagMap );
