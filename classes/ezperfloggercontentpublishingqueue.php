@@ -29,7 +29,9 @@ class eZPerfLoggerContentPublishingQueue extends ezpContentPublishingQueue
     }
 
     /**
-     * Reimplemented, so that we give back a different type of item to the queue processor
+     * Reimplemented, so that
+     * - we give back a different type of item to the queue processor
+     * - we only allow 1 concurrent publication per-object at a time
      */
     public static function next()
     {
@@ -43,6 +45,19 @@ class eZPerfLoggerContentPublishingQueue extends ezpContentPublishingQueue
         if ( count( $queuedProcess ) == 0 )
             return false;
         else
+        {
+            // check if another instance is being published of the same object
+            $db = eZDB::instance();
+            $processing = $db->arrayQuery( "SELECT count(*) AS other" .
+                "FROM ezpublishingqueueprocesses p, ezcontentobject_version v " .
+                "WHERE p.ezcontentobject_version_id = v.id AND p.status = 1 AND v.contentobject_id IN ( " .
+                "SELECT contentobject_id FROM ezcontentobject_version v2 WHERE id = " . $queuedProcess[0]->attribute('ezcontentobject_version_id') . " )"
+            );
+            if ( $processing[0]['other'] )
+            {
+                return false;
+            }
             return $queuedProcess[0];
+        }
     }
 }

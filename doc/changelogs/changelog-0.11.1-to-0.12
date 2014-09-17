@@ -15,4 +15,6 @@ changelog from version 0.11 to 0.12 - released 2014.9.xx
 
 - Minor fix in the tracer for imagemagick conversion for eZP 4.6 to 5.1 (was referencing a class from the 4.5 tracers)
 
+- implement fix for issue EZP-23206 in the tracer version of the publishingqueue processor
+
 * Changes
