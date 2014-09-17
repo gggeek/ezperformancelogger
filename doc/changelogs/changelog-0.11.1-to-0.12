@@ -1,4 +1,4 @@
-changelog from version 0.11 to 0.12 - released 2014.7.xx
+changelog from version 0.11 to 0.12 - released 2014.9.xx
 
 * New features
 
@@ -7,9 +7,12 @@ changelog from version 0.11 to 0.12 - released 2014.7.xx
   NB: this only works if you are using the standard text extractors or the eztika extension.
 
 - It is now possible to trace the time eZ spends sending mails.
-  Only available for sendail/smpt transports, for eZP 4.7
+  Only available for sendail/smtp transports, for eZP 4.7
+
+- Added tracer classes for eZ Publish 5.2
 
 * Bugfixes
 
+- Minor fix in the tracer for imagemagick conversion for eZP 5.0 and 5.1 (was referencing a class from the 4.5 tracers)
 
 * Changes
