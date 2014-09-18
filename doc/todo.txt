@@ -9,6 +9,7 @@ perf logging:
   . fetch functions to retrieve data when it's in the db
 . more KPIs in std logger
   . allow module_result/* and content_info/* for ezp >= 5.0
+  . add mail-sending tracers for all other versions than ezp 4.7
 . more logging targets
   . allow using snmp traps as target
   . yoochoose trackers?

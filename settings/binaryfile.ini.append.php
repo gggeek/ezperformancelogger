@@ -9,9 +9,9 @@ ExtensionRepositories[]=ezperformancelogger/classes/tracers/ezbinaryfile
 # NB: LOOK FIRST AT THE  VALUES YOU HAVE FOR THESE SETTINGS !!! Only activate the tracing version if you are using a
 # MetadataExtractor of similar name, eg ezplaintext => ezperfloggerplaintext
 
-MetaDataExtractor[text/plain]=eZPerfLoggerPlaintext
-MetaDataExtractor[application/pdf]=eZPerfLoggerPDF
-MetaDataExtractor[application/msword]=eZPerfLoggerWord
+#MetaDataExtractor[text/plain]=eZPerfLoggerPlaintext
+#MetaDataExtractor[application/pdf]=eZPerfLoggerPDF
+#MetaDataExtractor[application/msword]=eZPerfLoggerWord
 
 # If you are using eztika, uncomment all of the following:
 #MetaDataExtractor[application/msword]=eZPerfLoggerMulti

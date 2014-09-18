@@ -1,4 +1,4 @@
-<?php/*
+<?php /*
 
 # WARNING - HERE BE LIONS - WE EAT KITTENS FOR BREAKFAST
 
