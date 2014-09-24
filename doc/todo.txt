@@ -1,7 +1,8 @@
 perf logging:
 . improve integration with eZ5 and eZ-LS
-  . make all loggers which rewrite output actually work
-  . all other stuff... quite a lot is left
+  . test all loggers which rewrite output: do they actually work in eZ5 mode?
+  . test again logging on pages which do redirects: does it work or not?
+  . test installation via composer, starting with eZP 5.0
 . self-contained db logging
   . direct-to-db logging
   . import parsed data to db (and aggregate it to a data-cube)
