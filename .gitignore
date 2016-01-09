@@ -7,3 +7,7 @@ var
 build
 dist
 pakefile.php
+pake/options-user.yaml
+vendor
+composer.lock
+composer.phar
