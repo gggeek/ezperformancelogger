@@ -14,52 +14,53 @@ For performance logging
    the [GeneralSettings]/VariableProviders parameter as well.
    NB: db_queries logging by default only works with ez debug on.
 
+
 3. edit ezperformancelogger.ini to decide how to log it:
 
-  a. using Apache
-  to add perf data to the Apache access log, customize your Apache configuration
-  taking as example the sample_httpd.conf file in the doc directory.
-  It is recommended not to enable collection of execution time via
-  TrackVariables when using Apache, but to rely on the more precise native
-  measure obtained with %D
-  Remember to restart Apache after changing its configuration
+    a. using Apache
+      to add perf data to the Apache access log, customize your Apache configuration
+      taking as example the sample_httpd.conf file in the doc directory.
+      It is recommended not to enable collection of execution time via
+      TrackVariables when using Apache, but to rely on the more precise native
+      measure obtained with %D
+      Remember to restart Apache after changing its configuration
 
-  b. using odoscope, piwik or google analytics
-  the perf data is logged directly to the analytics engine database, via usage
-  of "custom variables" (ie. we add the perf data to the js call done for visit
-  tracking). For all of these tools, you will need to insert in your pagelayout
-  template the standard javascript tracking code; the extension will transform
-  it as appropriate to add the extra data.
-  For ga, only the async tag is supported.
-  NB: data reported via odoscope, piwik or google analytics will not be accurate
-  if your website is using a caching reverse proxy or cdn. Please use tha apache-log
-  configuration in such case.
+    b. using odoscope, piwik or google analytics
+      the perf data is logged directly to the analytics engine database, via usage
+      of "custom variables" (ie. we add the perf data to the js call done for visit
+      tracking). For all of these tools, you will need to insert in your pagelayout
+      template the standard javascript tracking code; the extension will transform
+      it as appropriate to add the extra data.
+      For ga, only the async tag is supported.
+      NB: data reported via odoscope, piwik or google analytics will not be accurate
+      if your website is using a caching reverse proxy or cdn. Please use tha apache-log
+      configuration in such case.
 
-  c. using a separate log file
-  this is useful if your webserver is Nginx, Lighttpd or IIS. In that case, the
-  extension can log perf data all by itself to a separate log. The name of that
-  file has to be configured in ezperformancelogger.ini; it can be written either
-  using the same format as Apache "extended" log, with perf counters data at the
-  end of the line, or in csv format
+    c. using a separate log file
+      this is useful if your webserver is Nginx, Lighttpd or IIS. In that case, the
+      extension can log perf data all by itself to a separate log. The name of that
+      file has to be configured in ezperformancelogger.ini; it can be written either
+      using the same format as Apache "extended" log, with perf counters data at the
+      end of the line, or in csv format
 
-  d. using statsd and graphite
-  this is useful if you have a lot of traffic, and want to be able to see nice
-  graphs, with drill-down / group / filter capability.
-  Steps are:
-  I. set up a graphite+statsd server
-  II. set up ezperformancelogger.ini
-  III. if using ezp >= 5, add a specific template tag in your pagelayout (see provided
-       tpl in the design/admin folder in this extension)
-  The main difference between graphite and other KPI graphing tools is the extensive
-  support for grouping data. To get most value out of it, the extension "rewrites" the
-  names of the measured KPIs when sending them to statsd, injecting by default the
-  content-class name and node-id. This way the graphite user could drill down, to see
-  f.e. the avg page-load-time across the whole site, then across all pages displaying
-  articles, then only for the article with node-id 635.
-  The way KPI names are rewritten for graphite can also be configured via ini settings.
+    d. using statsd and graphite
+      this is useful if you have a lot of traffic, and want to be able to see nice
+      graphs, with drill-down / group / filter capability.
+      Steps are:
+      I. set up a graphite+statsd server
+      II. set up ezperformancelogger.ini
+      III. if using ezp >= 5, add a specific template tag in your pagelayout (see provided
+           tpl in the design/admin folder in this extension)
+      The main difference between graphite and other KPI graphing tools is the extensive
+      support for grouping data. To get most value out of it, the extension "rewrites" the
+      names of the measured KPIs when sending them to statsd, injecting by default the
+      content-class name and node-id. This way the graphite user could drill down, to see
+      f.e. the avg page-load-time across the whole site, then across all pages displaying
+      articles, then only for the article with node-id 635.
+      The way KPI names are rewritten for graphite can also be configured via ini settings.
 
-  e. using monolog, syslog etc...
-  read comments in ezperformancelogger.ini to find out more details about those
+    e. using monolog, syslog etc...
+      read comments in ezperformancelogger.ini to find out more details about those
 
 
 4. once logging of data is active, we recommend using a tool like httrack or
