@@ -2,7 +2,7 @@
 /**
  * Munin plugin script
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2012-2014
+ * @copyright (C) eZ Systems AS 2012-2016
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo in verbose mode state how many log files were rotated

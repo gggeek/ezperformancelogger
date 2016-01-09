@@ -4,7 +4,7 @@
  * Encoding code courtesy of Protobuf for PHP lib by Iván -DrSlump- Montes: http://github.com/drslump/Protobuf-PHP
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2011 - 2014
+ * @copyright (C) eZ Systems AS 2011 - 2016
  *
  * @todo find a better name for this helper class...
  */

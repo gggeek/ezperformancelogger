@@ -12,7 +12,7 @@
  * @todo !important separate the logger, provider, utility parts in separate classes
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2008-2014
+ * @copyright (C) eZ Systems AS 2008-2016
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 

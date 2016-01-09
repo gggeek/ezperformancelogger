@@ -1,7 +1,7 @@
 <?php
 /**
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2014
+ * @copyright (C) eZ Systems AS 2014-2016
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
