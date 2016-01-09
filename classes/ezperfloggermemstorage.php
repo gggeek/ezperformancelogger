@@ -3,7 +3,7 @@
  * A class devised to hold in memory perf stats parsed from logs
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -59,5 +59,3 @@ class eZPerfLoggerMemStorage implements eZPerfLoggerStorage
         }
     }
 }
-
-?>

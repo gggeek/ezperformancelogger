@@ -1,0 +1,60 @@
+Technical analysis for the port to eZ Publish 5.x
+=================================================
+
+As Is
+-----
+
+The execution hooks which are available in eZ Publish 5.0 and later are different from the ones in eZP version 4.
+
+## eZ4 hooks:
+
+$scriptStartTime (global var) time is taken right at the top of index.php
+
+OutputFilterName => only used up to 4.7
+
+response/preoutput => in ezp 4.5 to 4.7: fired immediately after OutputFilterName
+                      in 5.0 and later: fired inside eZDisplayResult(), mostly from ezpKernelWeb
+
+ezexecution cleanup handler => only since version XXX
+                               Automatically activated when using the tracing db handler AND changing ini settings in
+                               ezperformancelogger.ini.
+                               Fired at ???
+
+## eZ5 hooks:
+
+$scriptStartTime (global var) is not defined. ezpkernelweb::requestInit() measures eZDebug::$ScriptStart. The symfony
+kernel does measure its start time, but only when in development mode.
+
+index.php is free to edit by developers:
+  1. can measure $scriptStartTime in there
+  2. can use a Symfony kernel event handler to measure data, and maybe even manipulate output =>
+     - advantage: it runs only once
+     - it has access to response text, status code, and the legacy kernel
+     - it runs at the very end, possibly after output echoing to screen (good as long as you do not want to log to in-page)
+     - it allows us to disable response/preoutput filter (tested for both frontend and backend/legacy mode)
+     - what about cleanup handler registered via registerShutdownPerfLogger? => it is not enabled by default, luckily.
+       The problem with it is that cleanup handlers do get called on each runcallback() call ( see issue EZP-...), and
+       have no way to know if they are 'the real last one'...
+     - how does it cope with ez4 'eZExecution::cleanExit' ?
+       Apparently fine. Tested when logging content being edited (redirects) and with ggsysinfo json modules
+     - does not run in legacy context => an extra kernel switch is needed for all ini settings to be read. But this happens
+       after output rendering, so there should be no perceived delay from the end user
+  3. for best timing measure and less perf impact, using a post-response Sf event handler is recommended to log data,
+     but if the loggers enabled need to rewrite output, a response-filter event handler is needed instead.
+     Adding 2 handlers works, even though it makes the code a bit more complicated.
+     The downside is that the developer has to explicitly choose which mode to enable - by editing services.yml
+
+
+New features ideas and possibilities
+------------------------------------
+
+* Reporting data back to the sf debug toolbar / profiler: see EzPublishDataCollector as basic example
+
+* Test using aspect-driven libraries to inject timing points to existing services/methods without having to modify the code
+  of the base classes as we are forced to do for eZ4 (see the tracers directory...)
+
+* Could we just reuse code from the Symfony profiler?
+
+* Add simple-to-enable tracers for Doctrine db connection, and for the SPI, Stash, ...
+
+* Add twig tpl operators for timing points (can we just reuse the ones recently introduced in Symfony?)

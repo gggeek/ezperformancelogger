@@ -1,7 +1,7 @@
 <?php
 /**
  * @author G. Giunta
- * @copyright (C) 2012-2013 G. Giunta
+ * @copyright (C) 2012-2014 G. Giunta
  * @license code licensed under the GPL License: see LICENSE file
  **/
 
@@ -98,4 +98,3 @@ class eZPerformanceLoggerOperators {
     }
 
 }
-?>

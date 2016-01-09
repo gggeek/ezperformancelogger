@@ -1,0 +1,22 @@
+changelog from version 0.11 to 0.12 - released 2014.9.xx
+
+* New features
+
+- It is now possible to trace the time eZ spends extracting text from binary files for the search engine.
+  See the new settings in ezcontentsync.ini and binaryfile.ini.append.php for how to enable this.
+  NB: this only works if you are using the standard text extractors or the eztika extension.
+
+- It is now possible to trace the time eZ spends sending mails.
+  Only available for sendmail/smtp transports, for eZP 4.7
+
+- Added tracer classes for eZ Publish 5.2 and 5.3
+
+* Bugfixes
+
+- Minor fix in the tracer for imagemagick conversion for eZP 4.6 to 5.1 (was referencing a class from the 4.5 tracers)
+
+- implement fix for issue EZP-23206 in the tracer version of the publishingqueue processor
+
+* Changes
+
+- Moved build process to the composer-version of ezextensionbuilder

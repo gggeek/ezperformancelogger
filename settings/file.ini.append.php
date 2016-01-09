@@ -1,4 +1,4 @@
-<?php/*
+<?php /*
 
 # WARNING - HERE BE LIONS - WE EAT KITTENS FOR BREAKFAST
 
@@ -24,5 +24,3 @@
 #DBBackend=eZDFSFileHandlerTracing47MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing50MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing51MySQLiBackend
-
-*/?>

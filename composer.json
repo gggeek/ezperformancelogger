@@ -8,7 +8,9 @@
     "require": {
         "ezsystems/ezpublish-legacy-installer": "*"
     },
-
+    "require-dev": {
+        "gggeek/ezextensionbuilder": "*"
+    },
     "suggest": {
         "monolog/monolog": "can be used to log the measured performance data to many different media",
         "php-xhprof": "a good profiler for php, designed to be fast enough to be used in production settings"

@@ -1,7 +1,7 @@
 <?php
 /**
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2013
+ * @copyright (C) eZ Systems AS 2013-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -25,7 +25,7 @@ class eZPerfLoggerLegacyIntegrator
     }
 
     /**
-     * We do runtikme checking to avoid compilation problems in pure ez4 stacks
+     * We do runtime checking to avoid compilation problems in pure ez4 stacks
      * @param Symfony\Component\HttpKernel\HttpKernelInterface $kernel
      * @throws RuntimeException
      */
@@ -49,4 +49,4 @@ class eZPerfLoggerLegacyIntegrator
         }
         return self::$kernel->getContainer();
     }
-} 
+}

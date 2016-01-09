@@ -1,7 +1,7 @@
 <?php
 /**
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2012-2013
+ * @copyright (C) eZ Systems AS 2012-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -30,6 +30,11 @@ interface eZPerfLoggerTimeMeasurer
      * @return array
      */
     public static function TimeAccumulatorList();
-}
 
-?>
+    /**
+     * Resets the measuring for one timing point, or all of them (when passed NULL).
+     * @param null $id
+     * @return mixed
+     */
+    public static function accumulatorReset( $id = null );
+}

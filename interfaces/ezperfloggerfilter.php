@@ -1,7 +1,7 @@
 <?php
 /**
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2012-2013
+ * @copyright (C) eZ Systems AS 2012-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -12,7 +12,7 @@
 interface eZPerfLoggerFilter
 {
     /**
-     * This method gets called by the framework for all classes regsitered in
+     * This method gets called by the framework for all classes registered in
      * LogFilters in ezperformancelogger.ini.
      * As soon as one class returns true, logging is activated
      *
@@ -22,5 +22,3 @@ interface eZPerfLoggerFilter
      */
     public static function shouldLog( array $data, $output );
 }
-
-?>

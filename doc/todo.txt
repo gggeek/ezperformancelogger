@@ -1,7 +1,8 @@
 perf logging:
 . improve integration with eZ5 and eZ-LS
-  . make all loggers which rewrite output actually work
-  . all other stuff... quite a lot is left
+  . test all loggers which rewrite output: do they actually work in eZ5 mode?
+  . test again logging on pages which do redirects: does it work or not?
+  . test installation via composer, starting with eZP 5.0
 . self-contained db logging
   . direct-to-db logging
   . import parsed data to db (and aggregate it to a data-cube)
@@ -9,6 +10,7 @@ perf logging:
   . fetch functions to retrieve data when it's in the db
 . more KPIs in std logger
   . allow module_result/* and content_info/* for ezp >= 5.0
+  . add mail-sending tracers for all other versions than ezp 4.7
 . more logging targets
   . allow using snmp traps as target
   . yoochoose trackers?
@@ -24,7 +26,8 @@ perf logging:
 
 . script to wget and measure a whole site
 . add to extension some sample spreadsheets where to copy data into, that come with pre-made formulas to show eg. view-cache relevancy
-. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate, site crawling via httrack + graphing with excel, ...)
+. add some nice tutorial with common usecases and advanced features (usage of mod_unique_id to reconcile access logs and perf data if kept separate,
+  site crawling via httrack + graphing with excel, logstash integration, ...)
 
 . scripts to coalesce csv files with a given time slice (eg. 1 data point every N minutes) to facilitate producing graphs
 . use eZDebug::appendTop(Bottom)Report for adding report info instead of using preg_stuff...

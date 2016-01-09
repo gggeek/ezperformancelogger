@@ -7,4 +7,3 @@ ModuleList[]=xhprof
 ModuleList[]=graphite
 ModuleList[]=munin
 
-*/ ?>

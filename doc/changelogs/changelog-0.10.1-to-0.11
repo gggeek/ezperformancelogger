@@ -1,16 +1,22 @@
-changelog from version 0.10.1 to 0.11 - released 2013.12.xx
+changelog from version 0.10.1 to 0.11 - released 2014.7.xx
 
 * New features
 
-- Integration with eZPublish 5 (new stack) has begun!
-  It is now much easier to use the extension from eZ5 context - watch out for a dedicated bundle in the future, though.
-  (Also please do not complain about all the ugly thunking code which was added ;-) Keeping a single codebase working
-  with 2 kernels is no easy feat)
+- It is now easier to properly trace the web pages which end up with redirects, without hacking the kernel.
+  In order to do so, you need to:
+    1. have enabled one of the tracing db connectors in site.ini.append.php
+    2. set AlwaysRegisterShutdownPerfLogger=enabled in ezperformancelogger.ini
+  Note that this will also enabled logging of cli scripts
 
-  The guiding principles are:
-  . to make it easy to add custom KPIs using the same php API, either from eZ5 or eZ-LS context
-  . to still have the extension working perfectly in a pure-LS installation
-  . to avoid as much as possible context switches within the extension itself, to avoid perf losses
+- It is now possible to trace the eZ User id of the current user (as at the end of page execution).
+  This can help f.e. when troubleshooting performance problems pertaining to a specific session
+
+- It is now possible to trace all variables from the $_SERVER superglobal.
+  Note that tracing string variables (as opposed to integers/floats) might lead to problems with some log writers
+
+- It is now possible to trace the resources used by publication events when using asynchronous publishing.
+  See the instructions in the INSTALL file for how to set it up.
+  NB: This has only been tested with eZPublish 4.7
 
 - A new parameter has been added to methods ezPerflogger::disable() ( and ezPerflogger::reenable() as well ).
   It prevents the extension from measuring any accumulator timing point.
@@ -21,16 +27,44 @@ changelog from version 0.10.1 to 0.11 - released 2013.12.xx
 
 - It is now possible to properly trace the http response code (but this still does not happen automatically out of the box)
 
+- Integration with eZPublish 5 (new stack) has begun!
+  It is now easier to use the extension from eZ5 context - watch out for a dedicated bundle in the future, though.
+  (Also please do not complain about all the ugly thunking code which was added ;-) Keeping a single codebase working
+  with 2 kernels is no easy feat)
+
+  The guiding principles are:
+  . to make it easy to add custom KPIs using the same php API, either from eZ5 or eZ-LS context
+  . to still have the extension working perfectly in a pure-LS installation
+  . to avoid as much as possible context switches within the extension itself, to avoid perf losses
+
+  NB: the extension is still only tested in pure-legacy mode!
+
+
 * Bugfixes
 
 - revamping (cleanup and bugfixes) of most existing "tracing" handlers (db, cluster, imagemagick)
 
+- the javascript loading in frontend design for xhprof-measurement is disabled by default, as it can break some sites
+
+- fixed the Pinba encoding library used for sending logs to Pinba servers
+
+- fixed default value in a setting for logging using Monolog
+
+- when using the perf. tracing for cli scripts, log to the default csv file the script filename instead of null
+
+- an http response code of 0 is now allowed
+
+
 * Changes
 
 - BC BREAK: the eZPerfLoggerProvider::measure() method signature has changed; now it takes and extra, optional
-            retcode parameter (used to trace http response status)
+            retCode parameter (used to trace http response status)
+
+- BC BREAK: the interface eZPerfLoggerTimeMeasurer acquired a new method: reset(). Used to remove accumulators
 
 - BC BREAK: if you are using the VariableProviders coming from the extension, they have been renamed and/or the variables
             they provide have been shifted around. Check ezperformancelogger.ini for details and adapt your config accordingly
 
 - updated license with proper copyright assignment to eZ Systems AS
+
+- the list of variables tracked by default includes the http request method (GET/POST/etc)

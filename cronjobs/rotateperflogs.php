@@ -2,7 +2,7 @@
 /**
  * Rotate log files produced by this extension
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2012-2013
+ * @copyright (C) eZ Systems AS 2012-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo encapsulate logic into php classes
@@ -31,5 +31,3 @@ if ( $ini->variable( 'csvSettings', 'RotateFiles' ) == 'enabled' )
 
 if ( !$isQuiet )
     $cli->output( "Log files rotated" );
-
-?>

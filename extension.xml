@@ -2,8 +2,8 @@
 <software>
     <metadata>
         <name>ezperformancelogger</name>
-        <version>0.9-dev</version>
-        <copyright>Copyright (C) 2010-2013 eZ Systems AS</copyright>
+        <version>0.12.0</version>
+        <copyright>Copyright (C) 2010-2014 eZ Systems AS</copyright>
         <license>GNU General Public License v2.0</license>
         <info_url>http://projects.ez.no/ezperformancelogger</info_url>
 

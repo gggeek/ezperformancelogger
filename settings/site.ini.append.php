@@ -3,7 +3,7 @@
 [TemplateSettings]
 ExtensionAutoloadPath[]=ezperformancelogger
 
-# This is the main mechanism used by this extension to trace all performance indicators.
+# This is the main mechanism used by this extension to trace all performance indicators (up to eZP 4.7).
 # Do not disable this line.
 [OutputSettings]
 OutputFilterName=eZPerfLogger
@@ -38,4 +38,7 @@ Listeners[]=response/preoutput@eZPerfLogger::preoutput
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing50DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing51DB
 
-*/ ?>
+[MailSettings]
+# ONLY UNCOMMENT ONE LINE PER PHP VERSION
+#TransportAlias[smtp]=eZSMTPTracing47Transport
+#TransportAlias[sendmail]=eZSendmailTracing47Transport

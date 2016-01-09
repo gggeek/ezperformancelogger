@@ -3,7 +3,7 @@
  * A class devised to hold in memory stats of urls accessed
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -74,5 +74,3 @@ class eZPerfLoggerUrlExtractorStorage implements eZPerfLoggerStorage
         self::$options = array_merge( self::$options, $opts );
     }
 }
-
-?>

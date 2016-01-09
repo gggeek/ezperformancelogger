@@ -5,7 +5,7 @@
  * us an API which we can use in the way we want
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -91,5 +91,3 @@ class eZPerfLoggerPinbaLogger extends pinba implements eZPerfLoggerLogger
         return array();
     }
 }
-
-?>

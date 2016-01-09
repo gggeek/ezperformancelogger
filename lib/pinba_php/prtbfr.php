@@ -4,7 +4,7 @@
  * Encoding code courtesy of Protobuf for PHP lib by Iván -DrSlump- Montes: http://github.com/drslump/Protobuf-PHP
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2011 - 2013
+ * @copyright (C) eZ Systems AS 2011 - 2014
  *
  * @todo find a better name for this helper class...
  */
@@ -168,19 +168,19 @@ class prtbfr
         {
             $bytes = strrev($bytes);
         }
-        $this->write($bytes, 4);
+        return substr($bytes, 0, 4);
     }
 
     protected static function fixed32_encode($value)
     {
         $bytes = pack('N*', $value);
-        $this->write($bytes, 4);
+        return substr($bytes, 0, 4);
     }
 
     protected static function sfixed64_encode($value)
     {
         $bytes = pack('V*', $value & 0xffffffff, $value / (0xffffffff+1));
-        $this->write($bytes, 8);
+        return substr($bytes, 0, 8);
     }
 
     protected static function fixed64_encode($value)
@@ -195,7 +195,7 @@ class prtbfr
         {
             $bytes = strrev($bytes);
         }
-        $this->write($bytes, 4);
+        return substr($bytes, 0, 4);
     }
 
     protected static function double_encode($value)
@@ -205,7 +205,7 @@ class prtbfr
         {
             $bytes = strrev($bytes);
         }
-        $this->write($bytes, 8);
+        return substr($bytes, 0, 8);
     }
 
     protected static function wiretype($type, $wire=null)
@@ -256,5 +256,3 @@ class prtbfr
         return self::$_endianness === self::BIG_ENDIAN;
     }
 }
-
-?>

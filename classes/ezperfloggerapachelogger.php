@@ -6,7 +6,7 @@
  * it is not implemented here but in the eZPerfLogger class
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2012-2013
+ * @copyright (C) eZ Systems AS 2012-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  *
  * @todo !important rename this class since it does not implement eZPerfLoggerLogger
@@ -154,5 +154,3 @@ class eZPerfLoggerApacheLogger implements eZPerfLoggerLogParser
 
     }
 }
-
-?>

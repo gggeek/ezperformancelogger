@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Gaetano Giunta
- * @copyright (c) 2013 G. Giunta
+ * @copyright (c) 2013 G. Giunta-2014
  * @license code licensed under the GPL License: see README
  */
 
@@ -20,6 +20,3 @@ $ViewList['display'] = array(
 $FunctionList = array(
     'view' => array()
 );
-
-
-?>

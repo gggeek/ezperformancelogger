@@ -2,9 +2,9 @@
 /**
  * The class implementing most of the logic of performance logging:
  * - it is registered as an 'output filter' class that does not filter anything, but triggers
- *   perf. data measurement and logging at the end of page execution
+ *   perf. data measurement and logging at the end of page execution (method: filter)
  * - for eZP 5.0 and later (LS only), where output filters are removed, the triggering of perf. data measurement
- *   and logging is done via the event system
+ *   and logging is done via the event system (method: preoutput)
  * - it implements the 2 interfaces that we use to divide the workflow in: provider, logger.
  *   In other words, it supports a lot of default KPIs and logging methods
  * - it also implements methods allowing other code to easily record measured perf data, and various utility functions
@@ -12,7 +12,7 @@
  * @todo !important separate the logger, provider, utility parts in separate classes
  *
  * @author G. Giunta
- * @copyright (C) eZ Systems AS 2008-2013
+ * @copyright (C) eZ Systems AS 2008-2014
  * @license Licensed under GNU General Public License v2.0. See file license.txt
  */
 
@@ -105,7 +105,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * This function can be called at the end of every page, including the ones
      * that end via redirect (and thus do not call "filter").
      * In order to do so, you need to call at some point in your controller
-     *   eZExecution::addCleanupHandler( array( 'eZPerfLogger', 'cleanup' ) );
+     *   eZPerfLogger::registerShutdownPerfLogger();
      * NB: it only fires once, even if called many times
      */
     static public function cleanup( $output='', $returnCode=null )
@@ -134,6 +134,31 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             return self::filter( $output, $returnCode );
         }
         return $output;
+    }
+
+    /**
+     * Registers the 'cleanup' function as shutdown handler, trying to do it only once
+     *
+     * @param bool $onlyIfConfigured when true, the registration only happens subject to an ini setting
+     * @return bool false if registration is aborted, true if the handler is (or was already) registered
+     */
+    static public function registerShutdownPerfLogger( $onlyIfConfigured = false )
+    {
+        if ( $onlyIfConfigured && eZPerfLoggerINI::variable( 'GeneralSettings', 'AlwaysRegisterShutdownPerfLogger' ) !== 'enabled' )
+        {
+            return false;
+        }
+
+        foreach( eZExecution::cleanupHandlers() as $handler )
+        {
+            if ( $handler == array( __CLASS__, 'cleanup' ) )
+            {
+                return true;
+            }
+        }
+
+        eZExecution::addCleanupHandler( array( __CLASS__, 'cleanup' ) );
+        return true;
     }
 
     /*** Other methods **/
@@ -178,6 +203,21 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
     /**
+     * Resets all perf measurements done so far for all active providers (only the ones which have the 'resetMeasures' method)
+     */
+    public static function reset()
+    {
+        // look up any perf data provider, and ask each one to give us its values
+        foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
+        {
+            if ( is_callable( array( $measuringClass, 'resetMeasures' ) ) )
+            {
+                call_user_func( array( $measuringClass, 'resetMeasures' ) );
+            }
+        }
+    }
+
+    /**
      * Returns all the perf. values measured so far.
      * @param bool $domeasure If true, will trigger data collection from registered perf-data providers,
      *                        otherwise only data recorded via calls to recordValue(s) will be returned
@@ -185,9 +225,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @return array
      * @too !important split method in 2 methods, with one public and one protected?
      */
-    public static function getValues( $domeasure, $output, $returnCode=null )
+    public static function getValues( $doMeasure, $output, $returnCode=null )
     {
-        if ( $domeasure )
+        if ( $doMeasure )
         {
             // look up any perf data provider, and ask each one to give us its values
             foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'VariableProviders' ) as $measuringClass )
@@ -282,7 +322,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
             'output_size' => 'int (bytes)'
         );
         /// @todo fix to run from eZ5 context
-        if ( eZDebug::isDebugEnabled() )
+        if ( eZPerfLoggerDebug::isDebugEnabled() )
         {
             $out['db_queries'] = 'int';
             $out['accumulators/*'] = 'float (seconds, rounded to 1msec)';
@@ -292,7 +332,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             $out['xhkprof_runs'] = 'string (csv list of identifiers)';
         }
-        if ( isset( $_SERVER['UNIQUE_ID '] ) )
+        if ( isset( $_SERVER['UNIQUE_ID'] ) )
         {
             $out['unique_id'] = 'string (unique per-request identifier)';
         }
@@ -301,6 +341,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         {
             $out['content/nodeid'] = 'int';
         }
+        $out['_server/*'] = 'string (depending on the specific variable)';
         return $out;
     }
 
@@ -323,9 +364,17 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         // Also using ga / piwik logs do alter $output, making length calculation in doLog() unreliable
         /// @todo this way of passing data around is not really beautiful...
         self::$outputSize = strlen( $output );
-        if ( $returnCode != null )
+        if ( $returnCode !== null )
         {
             self::$returnCode = (int) $returnCode;
+        }
+        else
+        {
+            // for cli scripts, set default response status to 0 instead of 200
+            if ( eZSys::isShellExecution() )
+            {
+                self::$returnCode = 0;
+            }
         }
 
         $out = array();
@@ -383,6 +432,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     $out[$var] = implode( ',', eZXHProfLogger::runs() );
                     break;
 
+                case 'user_id':
+                    $out[$var] = eZUser::currentUser()->attribute( 'contentobject_id' );
+                    break;
+
                 case 'unique_id':
                     $out[$var] = $_SERVER['UNIQUE_ID'];
                     break;
@@ -425,10 +478,30 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                         }
                         break;
                     }
+
+                    // everything in $_SERVER
+                    if ( strpos( $var, '_server/' ) === 0 )
+                    {
+                        $parts = explode( '/', $var, 2 );
+                        $val = @$_SERVER[$parts[1]];
+                        $out[$var] = $val;
+                        break;
+                    }
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Resets all resource measurements made so far
+     */
+    public static function resetMeasures()
+    {
+        global $scriptStartTime;
+
+        $scriptStartTime = microtime( true );
+        static::accumulatorReset();
     }
 
     /*** Some utility methods relied-upon by other classes ***/
@@ -529,10 +602,10 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         switch( $method )
         {
             case 'apache':
-                foreach( $values as $varname => $value )
+                foreach( $values as $varName => $value )
                 {
                     /// @todo should remove any " or space chars in the value for proper parsing by updateperfstats.php
-                    apache_note( $varname, $value );
+                    apache_note( $varName, $value );
                 }
                 break;
 
@@ -608,10 +681,9 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 /// @todo log error if storage class does not implement correct interface
                 // when we deprecate php 5.2, we will be able to use $storageClass::insertStats...
                 call_user_func( array( $storageClass, 'insertStats' ), array( array(
-                    'url' => $_SERVER["REQUEST_URI"],
+                    'url' => isset( $_SERVER["REQUEST_URI"] ) ? $_SERVER["REQUEST_URI"] : $_SERVER["PHP_SELF"],
                     'ip' => is_callable( 'eZSys::clientIP' ) ? eZSys::clientIP() : eZSys::serverVariable( 'REMOTE_ADDR' ), // ezp 4.5 or less
                     'time' => time(),
-                    /// @todo
                     'response_status' => self::$returnCode,
                     'response_size' => self::$outputSize,
                     'counters' => $values
@@ -674,11 +746,31 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
         }
     }
 
+    /**
+     * Reset accumulators values so far: either a single one or all of them.
+     * NB: also clears the ezdebug accumulators
+     */
+    public static function accumulatorReset( $val = null )
+    {
+        if ( $val === null )
+        {
+            self::$timeAccumulatorList = array();
+
+            if ( eZPerfLoggerDebug::isDebugEnabled() )
+            {
+                $debug = eZDebug::instance();
+                $debug->TimeAccumulatorList = array();
+            }
+        }
+        else
+        {
+            unset( self::$timeAccumulatorList[$val] );
+        }
+    }
+
     public static function timeAccumulatorList()
     {
         return self::$timeAccumulatorList;
     }
 
 }
-
-?>
