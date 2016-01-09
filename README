@@ -28,6 +28,7 @@ Requirements:
 . optionally: the xhprof profiler and graphviz
 . optionally: the Monolog library and its dependencies
 
+
 How it works: performance logging
 ---------------------------------
 
@@ -100,7 +101,6 @@ Notes:
 
   If you do now want to hack the kernel and are using the customized db connector, you
   just need instead to set AlwaysRegisterShutdownPerfLogger=enabled in ezperformacelogger.ini
-
 
 
 How it works: profiling

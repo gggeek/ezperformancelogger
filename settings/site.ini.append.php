@@ -6,7 +6,7 @@ ExtensionAutoloadPath[]=ezperformancelogger
 # This is the main mechanism used by this extension to trace all performance indicators (up to eZP 4.7).
 # Do not disable this line.
 [OutputSettings]
-OutputFilterName=eZPerfLogger
+###OutputFilterName=eZPerfLogger
 
 # An extra type cache, where we store data of profiling runs.
 # It is only used when integrating with XHProf, not for standard performance tracing
@@ -18,7 +18,7 @@ path=xhprof
 Listeners[]=content/cache@ezPerfLoggerEventListener::recordContentCache
 Listeners[]=image/alias@ezPerfLoggerEventListener::recordImageAlias
 # the following is an alternative to OutputFilterName=eZPerfLogger for ezpublish 5.0 LS and later
-Listeners[]=response/preoutput@eZPerfLogger::preoutput
+###Listeners[]=response/preoutput@eZPerfLogger::preoutput
 
 # WARNING - HERE BE LIONS - WE EAT KITTENS FOR BREAKFAST
 

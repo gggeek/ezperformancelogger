@@ -31,7 +31,7 @@ index.php is free to edit by developers:
      - advantage: it runs only once
      - it has access to response text, status code, and the legacy kernel
      - it runs at the very end, possibly after output echoing to screen (good as long as you do not want to log to in-page)
-     - it allows us to disable response/preoutput filter (tested for both frontend and backend/legacy mode)
+     - it allows us to disable the response/preoutput filter (tested for both frontend and backend/legacy mode)
      - what about cleanup handler registered via registerShutdownPerfLogger? => it is not enabled by default, luckily.
        The problem with it is that cleanup handlers do get called on each runcallback() call ( see issue EZP-...), and
        have no way to know if they are 'the real last one'...

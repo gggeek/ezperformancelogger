@@ -123,9 +123,36 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
     }
 
     /**
+     * This function can be registered as shutdown handler using
+     *   eZPerfLogger::registerShutdownPerfLogger( false, true);
+     * It differs from the cleanup function in that it only does anything when the cleanup handler is triggered by
+     * eZExecution::cleanExit() calls.
+     * This is useful to work around the fact that every time the eZ5 kernel does a runCallback(), it will call
+     * eZExecution::cleanup(), which triggers the cleanup handlers - but we do NOT want to run the perflogger
+     * logging code on each runCallback call - only on the last one.
+     * Of course this means a small performance hit, but unless the eZ kernel gets modified, we have little other choice...
+     *
+     * @param string $output
+     * @param int $returnCode
+     */
+    static public function cleanupOnCleanExit( $output='', $returnCode=null )
+    {
+        foreach( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) as $call )
+        {
+            if ( @$call['class'] == 'eZExecution' && $call['function'] == 'cleanExit' )
+            {
+                return self::cleanup( $output, $returnCode );
+            }
+        }
+    }
+
+    /**
      * This function can be registered as event handler for response/preoutput
      * (mandatory since ezp 5.0 LS and later, as OutputFilter has been removed).
      * NB: it only fires once, even if called many times
+     *
+     * @param string $output
+     * @param int $returnCode
      */
     static public function preoutput( $output, $returnCode=null )
     {
@@ -142,7 +169,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      * @param bool $onlyIfConfigured when true, the registration only happens subject to an ini setting
      * @return bool false if registration is aborted, true if the handler is (or was already) registered
      */
-    static public function registerShutdownPerfLogger( $onlyIfConfigured = false )
+    static public function registerShutdownPerfLogger( $onlyIfConfigured = false, $eZ5Context = false )
     {
         if ( $onlyIfConfigured && eZPerfLoggerINI::variable( 'GeneralSettings', 'AlwaysRegisterShutdownPerfLogger' ) !== 'enabled' )
         {
@@ -151,13 +178,21 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
 
         foreach( eZExecution::cleanupHandlers() as $handler )
         {
-            if ( $handler == array( __CLASS__, 'cleanup' ) )
+            if ( $handler == array( __CLASS__, 'cleanup' ) || $handler == array( __CLASS__, 'cleanupOnCleanExit' ) )
             {
                 return true;
             }
         }
 
-        eZExecution::addCleanupHandler( array( __CLASS__, 'cleanup' ) );
+        if ( $eZ5Context )
+        {
+            eZExecution::addCleanupHandler( array( __CLASS__, 'cleanupOnCleanExit' ) );
+        }
+        else
+        {
+            eZExecution::addCleanupHandler( array( __CLASS__, 'cleanup' ) );
+        }
+
         return true;
     }
 

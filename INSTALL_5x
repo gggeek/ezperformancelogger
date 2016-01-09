@@ -12,13 +12,13 @@ If you are using a "legacy siteaccess" by having set 'legacy_mode' in yml config
 
 2. Follow the installation and configuration instructions of this extension for eZ Publish 4 (the INSTALL file)
 
-2. Edit extension/ezperformancelogger/settings/site.ini.append.php, and disable the preoutput event listener, by
+3. Edit extension/ezperformancelogger/settings/site.ini.append.php, and disable the preoutput event listener, by
    commenting away the following line:
 
        Listeners[]=response/preoutput@eZPerfLogger::preoutput
 
-3. Edit your web/index.php file and add ...
+4. Edit your web/index.php file and add ...
 
-4. If in ezperformancelogger.ini you have set up any loggers which needs to rewrite output, edit services.yml: ...
+5. If in ezperformancelogger.ini you have set up any loggers which needs to rewrite output, edit services.yml: ...
 
-5. clear all caches (both eZ4 and eZ5 ones)
+6. clear all caches (both eZ4 and eZ5 ones)
