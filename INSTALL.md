@@ -62,6 +62,8 @@ For performance logging
     e. using monolog, syslog etc...
       read comments in ezperformancelogger.ini to find out more details about those
 
+    f. using Nginx and http response headers
+
 
 4. once logging of data is active, we recommend using a tool like httrack or
    wget to scan your complete website and get an overview of the performance

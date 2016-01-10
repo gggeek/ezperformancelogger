@@ -5,7 +5,7 @@ class eZperformanceloggerInfo
     static function info()
     {
         return array( 'Name' => "<a href=\"http://projects.ez.no/ezperformancelogger\">ezperformancelogger</a>",
-                      'Version' => "0.12.0",
+                      'Version' => "0.13.0",
                       'Copyright' => "Copyright (C) 2010-2016 eZ Systems AS",
                       'License' => "GNU General Public License v2.0",
                       '3rdparty_software' =>

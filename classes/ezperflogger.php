@@ -626,7 +626,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      */
     public static function supportedLogMethods()
     {
-        return array ( 'apache', 'piwik', 'googleanalytics', 'logfile', 'syslog', 'database', 'csv', 'storage' );
+        return array ( 'apache', 'piwik', 'googleanalytics', 'logfile', 'syslog', 'database', 'csv', 'storage', 'headers' );
     }
 
     /**
@@ -634,6 +634,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      */
     public static function doLog( $method, array $values, &$output )
     {
+var_dump($method);
         switch( $method )
         {
             case 'apache':
@@ -694,6 +695,14 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                     // syslog: we use apache log format for lack of a better idea...
                     openlog( "eZPerfLog", LOG_PID, LOG_USER );
                     syslog( LOG_INFO, $text );
+                }
+                break;
+
+            case 'headers':
+                $prefix = eZPerfLoggerINI::variable( 'HeadersSettings', 'HeaderPrefix' );
+                foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
+                {
+                    header($prefix . $var . ': ' . $values[$var]);
                 }
                 break;
 

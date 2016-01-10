@@ -1,8 +1,10 @@
-changelog from version 0.12 to 0.13 - released 2014.xx
+changelog from version 0.12 to 0.13 - released 2016.1.10
 
 * New features
 
 - Added installation instructions for eZ Publish 5 stacks - NB: a bundle is also needed for that!!!
+
+- Added a new method to log measured KPI: using http headers
 
 * Bugfixes
 
