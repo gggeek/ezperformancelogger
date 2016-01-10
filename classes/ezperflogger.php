@@ -634,7 +634,6 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
      */
     public static function doLog( $method, array $values, &$output )
     {
-var_dump($method);
         switch( $method )
         {
             case 'apache':
