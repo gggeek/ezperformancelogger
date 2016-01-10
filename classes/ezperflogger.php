@@ -701,7 +701,7 @@ class eZPerfLogger implements eZPerfLoggerProvider, eZPerfLoggerLogger, eZPerfLo
                 $prefix = eZPerfLoggerINI::variable( 'HeadersSettings', 'HeaderPrefix' );
                 foreach( eZPerfLoggerINI::variable( 'GeneralSettings', 'TrackVariables' ) as $i => $var )
                 {
-                    header($prefix . $var . ': ' . $values[$var]);
+                    header($prefix . str_replace( array( '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=', '{', '}', ' ', "\t" ), '-', $var ) . ': ' . $values[$var]);
                 }
                 break;
 
