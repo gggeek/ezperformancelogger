@@ -137,3 +137,12 @@ How it works: profiling
 Notes:
 - profiling info is not clustered. It will only be available on the webserver where
   it was generated
+
+
+Similar tools
+-------------
+
+There are many Application Performance Management solutions out there, which can do a lot more of this extension.
+A very good (but not entirely free) APM tool is NewRelic.
+
+For application profiling, besides XHProf and XDebug, there is (but not entirely free) Blackfire.io.
