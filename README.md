@@ -53,6 +53,7 @@ How it works: performance logging
   . a Pinba server
   . an Odoscope server
   . a Statsd server
+  . http response headers (useful for Nginx logs)
   and in the future possibly even more.
 
   Logging to the Apache access log is recommended for a number of reasons: by default

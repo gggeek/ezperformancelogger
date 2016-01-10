@@ -33,7 +33,7 @@ For performance logging
       it as appropriate to add the extra data.
       For ga, only the async tag is supported.
       NB: data reported via odoscope, piwik or google analytics will not be accurate
-      if your website is using a caching reverse proxy or cdn. Please use tha apache-log
+      if your website is using a caching reverse proxy or cdn. Please use the apache-log
       configuration in such case.
 
     c. using a separate log file
