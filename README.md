@@ -22,11 +22,18 @@ not in production environments.
 
 Requirements:
 -------------
-. eZP >= 4.6 or 5.X (NB: when running eZ5 in anything else but Legacy-Stack-only mode, you will need eZPerformanceLoggerBundle as well)
-. apache webserver recommended
-. optionally: either a piwik or ga account
-. optionally: the xhprof profiler and graphviz
-. optionally: the Monolog library and its dependencies
+- eZP >= 4.6 or 5.X running in pure-legacy-stack mode
+  (NB: when running eZ5 in anything else but Legacy-Stack-only mode, you will need to install eZPerformanceLoggerBundle)
+- apache webserver recommended
+- optionally: either a piwik or ga account
+- optionally: the xhprof profiler and graphviz
+- optionally: the Monolog library and its dependencies
+
+
+Installation:
+-------------
+
+See the [INSTALL.md](INSTALL.md) doc
 
 
 How it works: performance logging
@@ -34,26 +41,26 @@ How it works: performance logging
 
 - by logging performance indicators (also known as KPI) - for every page view -
   Supported indicators are, so far:
-  . total execution time
-  . total memory usage
-  . number of db queries
-  . all existing eZ4 accumulators (only when in debug mode)
-  . number of times any existing eZ4 "event" has fired
-  . eZ4 database access, cluster db access and imagemagick conversion time (only by usage of special connector classes)
-  . custom indicators set by the developer using php code or template code
-  . any data coming from $module_result (for eZ 5.x, this needs a piece of template code to be added to the pagelayout)
+  * total execution time
+  * total memory usage
+  * number of db queries
+  * all existing eZ4 accumulators (only when in debug mode)
+  * number of times any existing eZ4 "event" has fired
+  * eZ4 database access, cluster db access and imagemagick conversion time (only by usage of special connector classes)
+  * custom indicators set by the developer using php code or template code
+  * any data coming from $module_result (for eZ 5.x, this needs a piece of template code to be added to the pagelayout)
 
 - the logging of the data can be directed to different media:
-  . the Apache access log
-  . the piwik web analytics engine
-  . the google analytics engine
-  . a separate log file (Apache-log format)
-  . a separate log file (csv format)
-  . the Monolog logging library
-  . a Pinba server
-  . an Odoscope server
-  . a Statsd server
-  . http response headers (useful for Nginx logs)
+  * the Apache access log
+  * the piwik web analytics engine
+  * the google analytics engine
+  * a separate log file (Apache-log format)
+  * a separate log file (csv format)
+  * the Monolog logging library
+  * a Pinba server
+  * an Odoscope server
+  * a Statsd server
+  * http response headers (useful for Nginx logs)
   and in the future possibly even more.
 
   Logging to the Apache access log is recommended for a number of reasons: by default
@@ -64,8 +71,10 @@ How it works: performance logging
 - to ease statistical usage of the perf data saved in the Apache log, a courtesy cronjob/
   command line script is provided: updateperfstats.
   It can be used in a 2-phase performance analysis scenario:
+
   Phase 1: enable and configure ezperformanceogger to log to Apache log or to a
            custom log file; execute load tests
+
   Phase 2: run php extension/ezperformancelogger/bin/php/updateperfstats.php to
            parse the Apache access log and produce a csv file; import that csv
            file in your preferred spreadsheet tool or database
@@ -76,8 +85,8 @@ How it works: performance logging
 
 NB: the extension does not provide a way to visualize the logged
 data, you will need an external tool for that:
-. for data streamed to the Apache log or a separate log file, a spreadsheet program which can import csv files
-. for data streamed to piwik, ga, odoscope or statsd/graphite, use the analytics tool web interface
+- for data streamed to the Apache log or a separate log file, a spreadsheet program which can import csv files
+- for data streamed to piwik, ga, odoscope or statsd/graphite, use the analytics tool web interface
 
 Notes:
 - measured script runtime is a bit shorter than reality, as we can not hook at the very beginning and end of php process execution

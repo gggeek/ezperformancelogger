@@ -12,7 +12,7 @@ For performance logging
    See file README for more details about available data.
    Note that depending on the variables you want to log, you might have to alter
    the [GeneralSettings]/VariableProviders parameter as well.
-   NB: db_queries logging by default only works with ez debug on.
+   *NB:* db_queries logging by default only works with ez debug on. See point 5 below for how to fix this.
 
 
 3. edit ezperformancelogger.ini to decide how to log it:
@@ -63,7 +63,8 @@ For performance logging
       read comments in ezperformancelogger.ini to find out more details about those
 
     f. using Nginx and http response headers
-
+      set up the 'headers' logging method, and set up nginx configuration according to
+      https://www.nginx.com/blog/using-nginx-logging-for-application-performance-monitoring/
 
 4. once logging of data is active, we recommend using a tool like httrack or
    wget to scan your complete website and get an overview of the performance
