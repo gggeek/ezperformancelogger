@@ -63,8 +63,12 @@ For performance logging
       read comments in ezperformancelogger.ini to find out more details about those
 
     f. using Nginx and http response headers
-      set up the 'headers' logging method, and set up nginx configuration according to
+      enable the 'headers' logging method, and set up nginx configuration according to:
       https://www.nginx.com/blog/using-nginx-logging-for-application-performance-monitoring/
+      Take care that you have to:
+      - define an 'upstream' server for connecting to php-fpm
+      - use all lowercase letter and underscores instead of dashes when defining the headers to be logged
+      There is an example of such a configuration in the doc/ folder
 
 4. once logging of data is active, we recommend using a tool like httrack or
    wget to scan your complete website and get an overview of the performance
