@@ -24,19 +24,21 @@ Listeners[]=response/preoutput@eZPerfLogger::preoutput
 
 # In order to enable tracing of the number of db queries executed per page, even
 # when debug output is disabled, we use a different db-connection php class.
-# Within this extension are provided 4 such files, one for each of ez 4.5, 4.6, 4.7 and 5.0
+# Within this extension are provided some such files, one for each of ez 4.5 to 5.4
 # (only for installations using the mysqli db connector).
 # You can enable one when needed, and use more PKIs in your traced variables list
 # (those are detailed in ezperformancelogger.ini)
 
 [DatabaseSettings]
 # ONLY UNCOMMENT ONE LINE
-# NB: for eZP 5.0 and later, replace the 'ezmysqli' key below with 'mysql'
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing45DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing46DB
 #ImplementationAlias[ezmysqli]=eZMySQLiTracing47DB
-#ImplementationAlias[ezmysqli]=eZMySQLiTracing50DB
-#ImplementationAlias[ezmysqli]=eZMySQLiTracing51DB
+#ImplementationAlias[mysql]=eZMySQLiTracing50DB
+#ImplementationAlias[mysql]=eZMySQLiTracing51DB
+#ImplementationAlias[mysql]=eZMySQLiTracing52DB
+#ImplementationAlias[mysql]=eZMySQLiTracing53DB
+#ImplementationAlias[mysql]=eZMySQLiTracing54DB
 
 [MailSettings]
 # ONLY UNCOMMENT ONE LINE PER PHP VERSION

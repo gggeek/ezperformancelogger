@@ -6,6 +6,8 @@ changelog from version 0.12 to 0.13 - released 2016.1.10
 
 - Added a new method to log measured KPI: using http headers
 
+- Added tracer classes for eZ Publish 5.4
+
 * Bugfixes
 
 * Changes

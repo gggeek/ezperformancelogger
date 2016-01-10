@@ -6,7 +6,7 @@
 # cluster database activity, even when DebugOutput is disabled.
 # Uncomment two of the following lines for that, according to your version of
 # eZ Publish
-# If you have other eZP versions than 4.5, 4.6, 4.7 or 5.0 take example from the code
+# If you have other eZP versions than 4.5 - 5.4 take example from the code
 # given in classes/tracers/4.x, and create your own
 
 [ClusteringSettings]
@@ -16,6 +16,9 @@
 #FileHandler=eZDFSTracing47FileHandler
 #FileHandler=eZDFSTracing50FileHandler
 #FileHandler=eZDFSTracing51FileHandler
+#FileHandler=eZDFSTracing52FileHandler
+#FileHandler=eZDFSTracing53FileHandler
+#FileHandler=eZDFSTracing54FileHandler
 
 [eZDFSClusteringSettings]
 # ONLY UNCOMMENT ONE LINE
@@ -24,3 +27,6 @@
 #DBBackend=eZDFSFileHandlerTracing47MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing50MySQLiBackend
 #DBBackend=eZDFSFileHandlerTracing51MySQLiBackend
+#DBBackend=eZDFSFileHandlerTracing52MySQLiBackend
+#DBBackend=eZDFSFileHandlerTracing53MySQLiBackend
+#DBBackend=eZDFSFileHandlerTracing54MySQLiBackend
