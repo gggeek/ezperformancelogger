@@ -2,7 +2,7 @@
     "name": "gggeek/ezperformancelogger",
     "type": "ezpublish-legacy-extension",
     "description": "An extension dedicated to measuring performances of eZ Publish websites",
-    "license": "GNU General Public License v2.0",
+    "license": "GPL-2.0-or-later",
     "homepage": "http://projects.ez.no/ezperformancelogger",
     "require": {
         "ezsystems/ezpublish-legacy-installer": "*"
